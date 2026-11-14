@@ -3,751 +3,1678 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AFGSC Bot Control | Air Force Global Strike Command</title>
+<title>AFGSC | USAF Server Management</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@700&family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <style>
 :root{
-  --af-blue:#003087; --af-blue-dk:#001a4d; --af-blue-deep:#000f2e;
-  --af-yellow:#ffcd00; --ink:#1a1a1a; --ink2:#4d535c;
-  --line:#c9ced6; --bg:#eef0f3; --panel:#fff;
-  --green:#1e6b2e; --red:#a3231c; --amber:#9a5b00;
+  --blue:#00308F; --blue-dk:#001c52; --blue-lt:#0a4bbd; --gold:#FFC72C; --gold-dk:#d9a300;
+  --ink:#16181d; --ink-2:#4a5058; --line:#d5d9e0; --bg:#eef1f6; --panel:#fff;
+  --ok:#1c7a3e; --warn:#b8860b; --bad:#a3231b; --fs:15px;
+  --shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.1);
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
-body{font-family:Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
-img{max-width:100%;display:block}
-a{color:var(--af-blue)}
-.skip{position:absolute;left:-9999px;top:0;z-index:999;background:var(--af-yellow);color:#000;padding:10px 16px;font-weight:700}
-.skip:focus{left:8px;top:8px}
-.wrap{max-width:1240px;margin:0 auto;padding:0 18px}
+body{font-family:Roboto,Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink);font-size:var(--fs);line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--blue-lt)}
+h1,h2,h3,h4{margin:0;font-weight:700;letter-spacing:-.01em}
+button{font-family:inherit;font-size:14px;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:14px}
 
-/* official banner */
-.gov{background:#12233d;color:#dbe2ec;font-size:11.5px;letter-spacing:.03em;padding:5px 0;border-bottom:1px solid #2a3b57}
-.gov .wrap{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.gov .flag{width:17px;height:11px;flex:0 0 auto;border:1px solid #6b7a91;position:relative;
-  background:linear-gradient(#b22234 0 8%,#fff 8% 15%,#b22234 15% 23%,#fff 23% 31%,#b22234 31% 38%,#fff 38% 46%,#b22234 46% 54%,#fff 54% 62%,#b22234 62% 69%,#fff 69% 77%,#b22234 77% 85%,#fff 85% 92%,#b22234 92% 100%)}
-.gov .flag::after{content:"";position:absolute;left:0;top:0;width:7px;height:6px;background:#3c3b6e}
-.gov a{color:var(--af-yellow);text-decoration:none;font-weight:700}
-.gov a:hover{text-decoration:underline}
+#govbar{background:#0b0b0b;color:#c9ccd1;font-size:12px;letter-spacing:.02em;padding:5px 0;border-bottom:2px solid var(--gold)}
+#govbar .wrap{display:flex;align-items:center;gap:9px}
+.flag{width:19px;height:12px;flex:0 0 auto;background:
+  linear-gradient(#b22234,#b22234) 0 0/100% 15.4% no-repeat,
+  linear-gradient(#fff,#fff) 0 15.4%/100% 15.4% no-repeat,
+  linear-gradient(#b22234,#b22234) 0 30.8%/100% 15.4% no-repeat,
+  linear-gradient(#fff,#fff) 0 46.2%/100% 15.4% no-repeat,
+  linear-gradient(#b22234,#b22234) 0 61.6%/100% 15.4% no-repeat,
+  linear-gradient(#fff,#fff) 0 77%/100% 15.4% no-repeat,
+  linear-gradient(#b22234,#b22234) 0 92.4%/100% 15.4% no-repeat,#b22234;
+  border:1px solid #333;position:relative}
+.flag:after{content:"";position:absolute;inset:0 auto auto 0;width:8px;height:6.6px;background:#3c3b6e}
+#govbar b{color:#fff;font-weight:500}
+#govbar .sep{opacity:.4}
+#govbar a{color:#c9ccd1;text-decoration:none}
+#govbar a:hover{color:var(--gold)}
 
-/* masthead */
-header.mast{background:var(--af-blue);color:#fff;border-bottom:4px solid var(--af-yellow)}
-.mast .wrap{display:flex;align-items:center;gap:18px;padding-top:13px;padding-bottom:13px}
-.seal{width:76px;height:76px;flex:0 0 auto;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5))}
-.mast .titles{flex:1 1 auto;min-width:0}
-.mast .cmd{font-family:'Roboto Condensed',sans-serif;font-weight:700;font-size:23px;line-height:1.12;letter-spacing:.01em;text-transform:uppercase}
-.mast .sub{font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;color:#b9c9e6;margin-top:5px}
-.emblem-sm{width:62px;height:62px;flex:0 0 auto;filter:drop-shadow(0 1px 3px rgba(0,0,0,.45))}
-.mast .util{display:flex;gap:8px;flex:0 0 auto}
-.mast .util a{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#d5e0f2;text-decoration:none;border:1px solid #4a6ba8;padding:6px 10px}
-.mast .util a:hover{background:#0b4ba8;color:#fff}
+.wrap{max-width:1500px;margin:0 auto;padding:0 22px}
 
-/* nav */
-nav.main{background:var(--af-blue-dk);border-bottom:1px solid #0b2a66}
-nav.main ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap}
-nav.main a{display:block;color:#e8eef8;text-decoration:none;font-family:'Roboto Condensed',sans-serif;font-weight:700;font-size:12.5px;letter-spacing:.11em;text-transform:uppercase;padding:12px 18px;border-right:1px solid #12315f}
-nav.main a:hover{background:var(--af-blue);color:#fff}
-nav.main a.on{background:#fff;color:var(--af-blue)}
+#mast{background:#fff;border-bottom:4px solid var(--blue)}
+#mast .wrap{display:flex;align-items:center;gap:18px;padding-top:16px;padding-bottom:16px}
+#mast img.emblem{width:74px;height:74px;object-fit:contain;flex:0 0 auto;filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))}
+.mast-txt{min-width:0}
+.mast-kicker{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-2);font-weight:500}
+.mast-title{font-family:"Roboto Condensed",Roboto,sans-serif;font-size:27px;line-height:1.1;color:var(--blue);text-transform:uppercase;letter-spacing:.01em}
+.mast-sub{font-size:12.5px;color:var(--ink-2);margin-top:3px}
+.mast-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.userchip{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:2px;padding:6px 10px;font-size:13px;background:#fafbfd}
+.userchip .dot{width:7px;height:7px;border-radius:50%;background:var(--ok)}
 
-/* views */
-.view{display:none}
-.view.on{display:block}
+#nav{background:var(--blue);border-bottom:3px solid var(--gold)}
+#nav .wrap{display:flex;overflow-x:auto;scrollbar-width:thin}
+#nav a{color:#dce4f5;text-decoration:none;font-size:12.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;padding:13px 15px;border-bottom:3px solid transparent;white-space:nowrap}
+#nav a:hover{background:rgba(255,255,255,.09);color:#fff}
+#nav a.on{color:#fff;border-bottom-color:var(--gold);background:rgba(255,255,255,.13)}
+#nav a.navsep{color:var(--gold);pointer-events:none;font-size:11px;opacity:.75;padding-right:4px;padding-left:20px}
+#nav a.navsep:first-child{padding-left:0}
 
-/* ---------- LOGIN ---------- */
-.login-wrap{padding:44px 18px 60px;display:flex;justify-content:center}
-.login-card{background:var(--panel);border:1px solid var(--line);border-top:5px solid var(--af-blue);max-width:460px;width:100%;box-shadow:0 2px 10px rgba(0,0,0,.09)}
-.login-head{text-align:center;padding:26px 26px 18px;border-bottom:1px solid var(--line);background:#f7f9fc}
-.login-head .emblem{width:104px;height:104px;margin:0 auto 12px;filter:drop-shadow(0 2px 5px rgba(0,0,0,.28))}
-.login-head h1{font-family:'Roboto Condensed',sans-serif;font-size:19px;text-transform:uppercase;letter-spacing:.1em;margin:0 0 6px;color:var(--af-blue-deep)}
-.login-head p{margin:0;font-size:11.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink2)}
-.login-body{padding:22px 26px 26px}
-.classbar{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--af-blue-deep);color:var(--af-yellow);font-family:'Roboto Condensed',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.16em;padding:7px;margin:0 26px;text-transform:uppercase}
-.field{margin-bottom:15px}
-.field label{display:block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:6px}
-.field input{width:100%;padding:11px 12px;border:1px solid #a9b1bd;border-radius:2px;font-size:15px;font-family:Roboto,sans-serif;background:#fdfdfd}
-.field input:focus{outline:3px solid #ffcd00;outline-offset:0;border-color:var(--af-blue)}
-.btn{font-family:'Roboto Condensed',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.11em;font-size:13px;cursor:pointer;border-radius:2px;border:1px solid transparent}
-.btn-primary{width:100%;padding:13px;background:var(--af-blue);color:#fff;border-color:var(--af-blue)}
-.btn-primary:hover{background:#0043bd}
-.btn-primary:active{background:var(--af-blue-deep)}
-#err{min-height:19px;margin:11px 0 0;font-size:12px;font-weight:700;letter-spacing:.05em;color:var(--red);text-transform:uppercase}
-.hint{margin:14px 0 0;padding-top:13px;border-top:1px dashed var(--line);font-size:12px;color:var(--ink2)}
-.hint code{background:#eef1f6;border:1px solid var(--line);padding:1px 5px;font-family:Consolas,monospace;color:var(--ink)}
-.notice{margin-top:16px;background:#fffbe6;border:1px solid #e8d99a;border-left:4px solid var(--af-yellow);padding:10px 12px;font-size:11.5px;color:#5c4a00}
+#shell{display:grid;grid-template-columns:236px minmax(0,1fr);gap:22px;padding:22px 0 46px;align-items:start}
+#side{background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);position:sticky;top:14px}
+#side .grp{padding:10px 0;border-bottom:1px solid #eceff4}
+#side .grp:last-child{border-bottom:0}
+#side .glbl{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#8b929c;font-weight:700;padding:2px 16px 6px}
+#side a{display:block;padding:7px 16px;color:#2c323b;text-decoration:none;font-size:13.5px;border-left:3px solid transparent}
+#side a:hover{background:#f2f5fa;color:var(--blue)}
+#side a.on{background:#eaf0fb;border-left-color:var(--gold);color:var(--blue);font-weight:700}
 
-/* ---------- DASHBOARD ---------- */
-.bar{background:var(--panel);border-bottom:1px solid var(--line);padding:11px 0}
-.bar .wrap{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.bar h2{font-family:'Roboto Condensed',sans-serif;font-size:15px;text-transform:uppercase;letter-spacing:.1em;margin:0;color:var(--af-blue-deep)}
-.bar .spacer{flex:1 1 auto}
-.chip{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;padding:5px 10px;border:1px solid var(--line);background:#f4f6f9;color:var(--ink2)}
-.chip.ok{background:#e7f4e9;border-color:#a9d3b0;color:var(--green)}
-.btn-sm{padding:7px 13px;font-size:11px;background:#fff;border:1px solid var(--af-blue);color:var(--af-blue)}
-.btn-sm:hover{background:var(--af-blue);color:#fff}
+#view{min-width:0}
+.page-h{border-bottom:2px solid var(--blue);padding-bottom:10px;margin-bottom:16px;display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.page-h h1{font-family:"Roboto Condensed",Roboto,sans-serif;font-size:23px;text-transform:uppercase;color:var(--blue);letter-spacing:.02em}
+.page-h p{margin:0;color:var(--ink-2);font-size:13px;max-width:70ch}
+.page-h .spacer{flex:1}
 
-.shell{display:grid;grid-template-columns:210px 1fr;gap:0;max-width:1240px;margin:0 auto;align-items:start}
-.side{background:var(--panel);border-right:1px solid var(--line);min-height:640px;padding:0 0 20px}
-.side h3{font-family:'Roboto Condensed',sans-serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--af-blue-dk);margin:0 0 0;padding:10px 16px}
-.side ul{list-style:none;margin:0 0 18px;padding:0}
-.side a{display:block;padding:9px 16px;font-size:12.5px;text-decoration:none;color:var(--ink2);border-left:3px solid transparent;border-bottom:1px solid #f0f2f5}
-.side a:hover{background:#f2f5fa;color:var(--af-blue);border-left-color:var(--af-yellow)}
-.side a.on{background:#eaf0fa;color:var(--af-blue);font-weight:700;border-left-color:var(--af-blue)}
+.card{background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);margin-bottom:18px}
+.card > header{background:#f7f9fc;border-bottom:1px solid var(--line);padding:9px 14px;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);display:flex;align-items:center;gap:10px}
+.card > header .spacer{flex:1}
+.card .body{padding:14px}
 
-.main-col{padding:20px 18px 50px;min-width:0}
-.crumb{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2);margin-bottom:14px}
-.crumb b{color:var(--af-blue-deep)}
+.btn{background:var(--blue);color:#fff;border:1px solid var(--blue-dk);padding:8px 14px;border-radius:2px;font-weight:500;letter-spacing:.02em}
+.btn:hover{background:var(--blue-lt)}
+.btn.gold{background:var(--gold);border-color:var(--gold-dk);color:#20180a;font-weight:700}
+.btn.gold:hover{background:#ffd35c}
+.btn.ghost{background:#fff;color:var(--blue);border-color:var(--line)}
+.btn.ghost:hover{background:#f0f4fb}
+.btn.sm{padding:4px 9px;font-size:12px}
+.btn.danger{background:var(--bad);border-color:#7d1a14}
+.btn.danger:hover{background:#c22c22}
 
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.card{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--af-blue);padding:0 0 16px}
-.card.wide{grid-column:span 2}
-.card.full{grid-column:span 3}
-.card.alert{border-top-color:var(--red)}
-.card h4{font-family:'Roboto Condensed',sans-serif;font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--af-blue-deep);margin:0;padding:11px 15px;border-bottom:1px solid var(--line);background:#f6f8fb;display:flex;justify-content:space-between;align-items:center;gap:8px}
-.card .body{padding:14px 15px 0}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:#6a7280;font-weight:700;padding:8px 12px;background:#f7f9fc;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px 12px;border-bottom:1px solid #eef1f6;vertical-align:top}
+tbody tr:hover{background:#fafcff}
+td.actions{white-space:nowrap;text-align:right}
+.empty{padding:26px 14px;text-align:center;color:#8b929c;font-size:13.5px}
 
-.statusline{display:flex;align-items:center;gap:11px;padding:13px 15px;background:var(--af-blue-deep);color:#fff;margin-bottom:0}
-.statusline .dot{width:11px;height:11px;border-radius:50%;background:#39d353;box-shadow:0 0 0 3px rgba(57,211,83,.22)}
-.statusline .lbl{font-family:'Roboto Condensed',sans-serif;font-weight:700;font-size:17px;letter-spacing:.15em;color:#4ce36a}
-.statusline .sm{font-size:11px;letter-spacing:.07em;color:#9fb3d4;margin-left:auto;text-transform:uppercase}
+.tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:2px;border:1px solid}
+.tag.ok{color:var(--ok);border-color:#b7dfc5;background:#eef8f1}
+.tag.warn{color:var(--warn);border-color:#e8d8a8;background:#fdf7e6}
+.tag.bad{color:var(--bad);border-color:#e8bdb9;background:#fdeeed}
+.tag.info{color:var(--blue);border-color:#bccbe6;background:#eef2fa}
+.tag.mute{color:#6a7280;border-color:#dfe3e9;background:#f4f6f9}
 
-.kv{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);margin:0 15px}
-.kv div{background:#fff;padding:10px 12px}
-.kv .k{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink2)}
-.kv .v{font-family:'Roboto Condensed',sans-serif;font-weight:700;font-size:19px;color:var(--af-blue-deep)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.stat{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--blue);padding:13px 15px;box-shadow:var(--shadow)}
+.stat .n{font-family:"Roboto Condensed",Roboto,sans-serif;font-size:30px;line-height:1;color:var(--blue)}
+.stat .l{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#7b828d;margin-top:6px;font-weight:700}
+.stat.g{border-top-color:var(--gold)}
 
-.defcon{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:0 15px}
-.defcon button{font-family:'Roboto Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:.05em;padding:11px 0;cursor:pointer;background:#fff;border:1px solid var(--line);color:var(--ink2)}
-.defcon button:hover{border-color:var(--af-blue)}
-.defcon button.on{background:var(--af-blue);border-color:var(--af-blue);color:#fff}
-.defcon button.on[data-d="1"]{background:var(--red);border-color:var(--red)}
-.defcon button.on[data-d="2"]{background:var(--amber);border-color:var(--amber)}
-.dstat{margin:12px 15px 0;font-size:12px;color:var(--ink2)}
-.dstat b{color:var(--af-blue-deep)}
+label.f{display:block;margin-bottom:12px}
+label.f > span{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:#6a7280;margin-bottom:5px}
+label.f input,label.f select,label.f textarea{width:100%;padding:8px 10px;border:1px solid #c8ced8;border-radius:2px;background:#fff;color:var(--ink)}
+label.f input:focus,label.f select:focus,label.f textarea:focus{outline:2px solid #b9cdf0;border-color:var(--blue)}
+label.f textarea{min-height:90px;resize:vertical}
+.hint{font-size:12px;color:#8b929c;margin-top:-8px;margin-bottom:12px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.row > *{flex:1 1 180px}
 
-.tog{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 15px;border-bottom:1px solid #f0f2f5}
-.tog:last-child{border-bottom:0}
-.tog .nm{font-size:12.5px;font-weight:500}
-.tog .nm span{display:block;font-size:10.5px;color:var(--ink2);font-weight:400}
-.sw{position:relative;width:40px;height:21px;flex:0 0 auto;background:#c3c9d2;border-radius:11px;cursor:pointer;border:0;transition:background .15s}
-.sw::after{content:"";position:absolute;top:2px;left:2px;width:17px;height:17px;background:#fff;border-radius:50%;transition:left .15s}
-.sw.on{background:var(--green)}
-.sw.on::after{left:21px}
+.sw{width:38px;height:20px;border-radius:20px;background:#c3c9d3;position:relative;display:inline-block;cursor:pointer;flex:0 0 auto;transition:.15s;border:0;padding:0}
+.sw:after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.15s;box-shadow:0 1px 2px rgba(0,0,0,.3)}
+.sw.on{background:var(--ok)}
+.sw.on:after{left:20px}
 
-.roster{list-style:none;margin:0;padding:0}
-.roster li{display:flex;align-items:center;gap:11px;padding:9px 15px;border-bottom:1px solid #f0f2f5}
-.roster img{width:31px;height:31px;object-fit:contain;flex:0 0 auto}
-.roster .nm{font-size:12.5px;font-weight:500;line-height:1.25}
-.roster .nm span{display:block;font-size:10.5px;color:var(--ink2);font-weight:400}
-.roster .st{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 7px;background:#e7f4e9;color:var(--green);border:1px solid #a9d3b0}
-.roster .st.w{background:#fdf1dc;color:var(--amber);border-color:#e8c894}
+.modrow{display:grid;grid-template-columns:1fr auto;gap:12px;padding:12px;border:1px solid var(--line);margin-bottom:10px;align-items:start;background:#fff}
+.modrow.off{opacity:.55}
+.modrow h4{font-size:14px;margin-bottom:2px}
+.modrow p{margin:0;font-size:12.5px;color:#8b929c}
+.modctl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.modctl select,.modctl input{width:auto;padding:4px 7px;border:1px solid #c8ced8;font-size:12.5px;border-radius:2px}
+.modctl label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#6a7280;font-weight:700;display:flex;gap:5px;align-items:center}
 
-.console-out{background:#06132c;color:#a8e6a8;font-family:Consolas,monospace;font-size:12px;padding:12px 14px;height:150px;overflow-y:auto;border:1px solid #0d2450;margin:0 15px}
-.console-out div{margin-bottom:3px;white-space:pre-wrap;word-break:break-word}
-.console-out .e{color:#ff8b7a}
-.console-out .i{color:#7fb3ff}
-.console-in{display:flex;gap:0;margin:0 15px}
-.console-in input{flex:1 1 auto;padding:9px 11px;border:1px solid #a9b1bd;border-right:0;font-family:Consolas,monospace;font-size:12.5px;border-radius:2px 0 0 2px}
-.console-in input:focus{outline:2px solid var(--af-yellow);outline-offset:-2px}
-.console-in button{padding:9px 15px;background:var(--af-blue);color:#fff;border:1px solid var(--af-blue);font-family:'Roboto Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:.1em;cursor:pointer;border-radius:0 2px 2px 0}
+.feed{border:1px solid var(--line);background:#fbfcfe;max-height:360px;overflow:auto;padding:8px 10px}
+.msg{display:flex;gap:9px;padding:7px 2px;border-bottom:1px solid #eef1f6}
+.msg:last-child{border-bottom:0}
+.msg .av{width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex:0 0 auto}
+.msg .au{font-weight:700;font-size:12.5px}
+.msg .ti{font-size:11px;color:#8b929c;margin-left:6px}
+.msg .tx{font-size:13.5px;margin-top:1px}
 
-.log{height:250px;overflow-y:auto;background:#06132c;border:1px solid #0d2450;margin:0 15px;padding:11px 13px;font-family:Consolas,monospace;font-size:11.5px;color:#c6d4e8}
-.log div{margin-bottom:4px;display:flex;gap:8px}
-.log .t{color:#6b8cba;flex:0 0 auto}
-.log .m{color:#dbe6f5;word-break:break-word}
-.log .m.w{color:var(--af-yellow)}
-.log .m.e{color:#ff8b7a}
-.log .m.g{color:#5ddc74}
+.cmdrow{display:grid;grid-template-columns:minmax(0,1fr) 150px auto;gap:10px;padding:8px 12px;border-bottom:1px solid #eef1f6;align-items:center}
+.cmdrow.off{opacity:.5}
+.cmdrow .nm{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;font-weight:700}
+.cmdrow .us{font-size:11.5px;color:#8b929c;font-family:ui-monospace,Menlo,Consolas,monospace}
 
-.metric{margin-bottom:13px;padding:0 15px}
-.metric .top{display:flex;justify-content:space-between;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink2);margin-bottom:5px}
-.metric .top b{color:var(--af-blue-deep)}
-.track{height:8px;background:#e4e8ee;border-radius:0;overflow:hidden}
-.fill{height:100%;background:var(--af-blue);transition:width .5s ease}
-.fill.y{background:var(--af-yellow)}
-.fill.g{background:var(--green)}
-.fill.r{background:var(--red)}
+.chk{display:flex;flex-wrap:wrap;gap:6px 14px}
+.chk label{display:flex;gap:6px;align-items:center;font-size:13px;padding:4px 0}
 
-table{width:100%;border-collapse:collapse;font-size:12.5px}
-th{background:#f6f8fb;text-align:left;font-family:'Roboto Condensed',sans-serif;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink2);padding:8px 15px;border-bottom:1px solid var(--line)}
-td{padding:9px 15px;border-bottom:1px solid #f0f2f5}
-td b{color:var(--af-blue-deep)}
+#veil{position:fixed;inset:0;background:rgba(9,17,33,.55);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:60;overflow:auto}
+#veil.on{display:flex}
+.modal{background:#fff;border-top:4px solid var(--gold);box-shadow:0 20px 50px rgba(0,0,0,.35);width:100%;max-width:600px}
+.modal h3{font-family:"Roboto Condensed",Roboto,sans-serif;text-transform:uppercase;font-size:17px;color:var(--blue);padding:14px 18px;border-bottom:1px solid var(--line)}
+.modal .mbody{padding:16px 18px}
+.modal .mfoot{padding:12px 18px;border-top:1px solid var(--line);background:#f7f9fc;display:flex;gap:9px;justify-content:flex-end}
 
-/* footer */
-footer{background:var(--af-blue-deep);color:#b9c8dd;font-size:12px;padding:30px 0 0;margin-top:20px;border-top:5px solid var(--af-yellow)}
-footer .cols{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:26px;padding-bottom:26px}
-footer h5{font-family:'Roboto Condensed',sans-serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#fff;margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid #1b3358}
-footer ul{list-style:none;margin:0;padding:0}
-footer li{margin-bottom:6px}
-footer a{color:#c6d4e8;text-decoration:none}
-footer a:hover{color:var(--af-yellow);text-decoration:underline}
-footer .brand{display:flex;gap:13px;align-items:flex-start}
-footer .brand img{width:52px;height:52px;flex:0 0 auto;filter:brightness(0) invert(1) opacity(.9)}
-footer .brand p{margin:0;line-height:1.6;max-width:330px}
-footer .legal{background:#000a1f;padding:14px 0;font-size:11px;color:#8fa3bf;border-top:1px solid #122b4d}
-footer .legal .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
-footer .legal a{color:#8fa3bf}
+#toast{position:fixed;right:18px;bottom:18px;z-index:90;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.toast{background:#101a2c;color:#fff;border-left:3px solid var(--gold);padding:10px 14px;font-size:13px;box-shadow:0 8px 22px rgba(0,0,0,.3);max-width:340px;animation:sl .18s ease-out}
+@keyframes sl{from{transform:translateY(6px);opacity:0}to{transform:none;opacity:1}}
 
-@media(max-width:1000px){
-  .grid{grid-template-columns:1fr 1fr}
-  .card.wide,.card.full{grid-column:span 2}
-  .shell{grid-template-columns:1fr}
-  .side{min-height:0;border-right:0;border-bottom:1px solid var(--line)}
-  .side ul{display:flex;flex-wrap:wrap}
-  .side a{border-bottom:0;border-left:0;border-right:1px solid #eef1f6}
+#gate{position:fixed;inset:0;background:linear-gradient(160deg,#001c52,#00308F 55%,#00122f);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+#gate .box{background:#fff;width:100%;max-width:410px;border-top:5px solid var(--gold);box-shadow:0 26px 60px rgba(0,0,0,.5)}
+#gate .hd{padding:22px 24px 14px;text-align:center;border-bottom:1px solid var(--line)}
+#gate img{width:88px;height:88px;object-fit:contain}
+#gate h1{font-family:"Roboto Condensed",Roboto,sans-serif;font-size:19px;text-transform:uppercase;color:var(--blue);margin-top:10px;letter-spacing:.03em}
+#gate p{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#8b929c;margin:5px 0 0;font-weight:700}
+#gate form{padding:18px 24px 22px}
+#gate .err{color:var(--bad);font-size:12.5px;font-weight:700;margin-bottom:10px;display:none}
+#gate .foot{background:#f7f9fc;border-top:1px solid var(--line);padding:9px;text-align:center;font-size:11px;color:#8b929c;letter-spacing:.04em}
+
+.toolbar{display:flex;gap:4px;flex-wrap:wrap;border:1px solid var(--line);border-bottom:0;background:#f7f9fc;padding:6px}
+.toolbar button{background:#fff;border:1px solid #d5d9e0;border-radius:2px;padding:4px 8px;font-size:12.5px;color:#2c323b}
+.toolbar button:hover{background:#eef2fa;border-color:#b9cdf0}
+#docEdit{border:1px solid var(--line);min-height:380px;padding:22px 26px;background:#fff;outline:0;font-size:15px;line-height:1.6}
+#docEdit:focus{box-shadow:inset 0 0 0 2px #b9cdf0}
+#docEdit h1{font-size:22px;color:var(--blue);margin:0 0 10px}
+#docEdit h2{font-size:18px;color:var(--blue);margin:16px 0 8px}
+#docEdit p{margin:0 0 10px}
+
+.ribbon{height:26px;border-radius:1px;border:1px solid rgba(0,0,0,.25);box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);position:relative}
+.ribbon:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,.28),rgba(0,0,0,.12))}
+
+#console{background:#0b1220;color:#c8e6c9;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;padding:12px;min-height:150px;white-space:pre-wrap;overflow:auto;max-height:340px}
+#codeIn{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;min-height:210px;width:100%;padding:12px;border:1px solid var(--line);background:#fbfcfe}
+
+.insignia-box{display:flex;gap:18px;align-items:center}
+.insignia-box img{width:112px;height:112px;object-fit:contain;border:1px solid var(--line);background:#f7f9fc;padding:6px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px}
+.muted{color:#8b929c}
+
+body[data-density="compact"] td{padding:5px 10px}
+body[data-density="compact"] .card .body{padding:10px}
+body[data-density="compact"] #side a{padding:5px 16px;font-size:13px}
+
+footer{background:#0b0b0b;color:#9aa1ab;font-size:12.5px;border-top:4px solid var(--gold);padding:26px 0 30px}
+footer .cols{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-bottom:20px}
+footer h4{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+footer a{color:#c9ccd1;text-decoration:none;display:block;padding:2px 0}
+footer a:hover{color:#fff;text-decoration:underline}
+footer .fine{border-top:1px solid #26292e;padding-top:16px;display:flex;gap:18px;flex-wrap:wrap;font-size:11.5px;color:#767d87;align-items:center}
+footer .fine img{width:26px;height:26px;opacity:.8}
+
+@media (max-width:1080px){
+  #shell{grid-template-columns:1fr}
+  #side{position:static;display:flex;overflow-x:auto}
+  #side .grp{border-bottom:0;border-right:1px solid #eceff4;flex:0 0 auto;padding:6px 0}
+  #side a{white-space:nowrap}
+  .grid4,.grid3{grid-template-columns:1fr 1fr}
   footer .cols{grid-template-columns:1fr 1fr}
+  .cmdrow{grid-template-columns:1fr}
 }
-@media(max-width:640px){
-  .grid{grid-template-columns:1fr}
-  .card.wide,.card.full{grid-column:span 1}
-  .mast .util{display:none}
-  .seal{width:58px;height:58px}
-  .emblem-sm{display:none}
-  .mast .cmd{font-size:17px}
-  .defcon{grid-template-columns:repeat(3,1fr)}
-  footer .cols{grid-template-columns:1fr}
+@media (max-width:640px){
+  .grid2,.grid3,.grid4{grid-template-columns:1fr}
+  #mast img.emblem{width:54px;height:54px}
+  .mast-title{font-size:19px}
+  .mast-right{display:none}
+}
+@media print{
+  #govbar,#nav,#side,#mast,#toast,footer{display:none!important}
+  #shell{display:block;padding:0}
+  .card{box-shadow:none;border:0}
 }
 </style>
 </head>
 <body>
-<a class="skip" href="#main">Skip to main content</a>
 
-<div class="gov">
-  <div class="wrap">
-    <span class="flag" aria-hidden="true"></span>
-    <span>An official website of the United States government</span>
-    <span aria-hidden="true">|</span>
-    <a href="#main">Here's how you know</a>
+<div id="gate">
+  <div class="box">
+    <div class="hd">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/1/1c/Air_Force_Global_Strike_Command.svg" alt="Air Force Global Strike Command emblem">
+      <h1>USAF Server Management</h1>
+      <p>Air Force Global Strike Command</p>
+    </div>
+    <form id="gateForm" autocomplete="off">
+      <div class="err" id="gateErr">Invalid credentials. Access denied.</div>
+      <label class="f"><span>Username</span><input id="gu" type="text" autocomplete="username" required></label>
+      <label class="f"><span>Password</span><input id="gp" type="password" autocomplete="current-password" required></label>
+      <button class="btn gold" style="width:100%" type="submit">Sign In</button>
+    </form>
+    <div class="foot">Authorized personnel only &middot; Session logged</div>
   </div>
 </div>
 
-<header class="mast">
+<div id="govbar">
   <div class="wrap">
-    <img class="seal" alt="Seal of the Department of the Air Force" src="https://upload.wikimedia.org/wikipedia/commons/8/8e/Seal_of_the_United_States_Department_of_the_Air_Force.svg">
-    <div class="titles">
-      <div class="cmd">Air Force Global Strike Command</div>
-      <div class="sub">Barksdale AFB, Louisiana &nbsp;&middot;&nbsp; Discord Bot Control Center</div>
+    <span class="flag" aria-hidden="true"></span>
+    <b>An Official United States Air Force Website</b>
+    <span class="sep">|</span>
+    <a href="https://www.af.mil" target="_blank" rel="noopener">AF.mil</a>
+    <span class="sep">|</span>
+    <a href="https://www.afgsc.af.mil" target="_blank" rel="noopener">AFGSC.af.mil</a>
+  </div>
+</div>
+
+<header id="mast">
+  <div class="wrap">
+    <img class="emblem" src="https://upload.wikimedia.org/wikipedia/commons/1/1c/Air_Force_Global_Strike_Command.svg" alt="AFGSC emblem">
+    <div class="mast-txt">
+      <div class="mast-kicker">Headquarters Air Force Global Strike Command</div>
+      <div class="mast-title">USAF Server Management</div>
+      <div class="mast-sub" id="mastSub">Discord moderation &amp; personnel control panel &middot; Barksdale AFB, Louisiana</div>
     </div>
-    <img class="emblem-sm" alt="Air Force Global Strike Command emblem" src="https://upload.wikimedia.org/wikipedia/commons/1/1c/Air_Force_Global_Strike_Command.svg">
-    <div class="util">
-      <a href="#main">Directory</a>
-      <a href="#footer">Contact</a>
+    <div class="mast-right">
+      <div class="userchip"><span class="dot"></span> <span id="whoami">admin</span></div>
+      <button class="btn ghost sm" id="signOut">Sign Out</button>
     </div>
   </div>
 </header>
 
-<nav class="main" aria-label="Primary">
-  <ul>
-    <li><a href="#main" class="on">Home</a></li>
-    <li><a href="#main">About</a></li>
-    <li><a href="#main">Units</a></li>
-    <li><a href="#main">Operations</a></li>
-    <li><a href="#main">Bot Control</a></li>
-    <li><a href="#main">Library</a></li>
-    <li><a href="#footer">Contact</a></li>
-  </ul>
-</nav>
+<nav id="nav"><div class="wrap" id="navRow"></div></nav>
 
-<main id="main">
+<div class="wrap">
+  <div id="shell">
+    <aside id="side"></aside>
+    <main id="view"></main>
+  </div>
+</div>
 
-  <!-- ================= LOGIN ================= -->
-  <section class="view on" id="loginView">
-    <div class="login-wrap">
-      <div class="login-card">
-        <div class="login-head">
-          <img class="emblem" alt="Air Force Global Strike Command emblem" src="https://upload.wikimedia.org/wikipedia/commons/1/1c/Air_Force_Global_Strike_Command.svg">
-          <h1>Bot Control Access</h1>
-          <p>Restricted &mdash; Authorized Users Only</p>
-        </div>
-        <div class="classbar">For Official Use Only</div>
-        <div class="login-body">
-          <form id="loginForm" autocomplete="off" novalidate>
-            <div class="field">
-              <label for="user">Username</label>
-              <input id="user" name="user" type="text" placeholder="Enter username" autocomplete="username" spellcheck="false">
-            </div>
-            <div class="field">
-              <label for="pass">Password</label>
-              <input id="pass" name="pass" type="password" placeholder="Enter password" autocomplete="current-password">
-            </div>
-            <button class="btn btn-primary" id="signin" type="submit">Sign In</button>
-            <p id="err" role="alert" aria-live="assertive"></p>
-          </form>
-          <p class="hint">Credentials for this demo: <code>admin</code> / <code>2026</code></p>
-          <div class="notice">
-            <strong>Notice:</strong> This is a demonstration system. Access is monitored. Press
-            <strong>Enter</strong> or select <strong>Sign In</strong> to reach the control panel.
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ================= DASHBOARD ================= -->
-  <section class="view" id="appView">
-    <div class="bar">
-      <div class="wrap">
-        <h2>Bot Control Panel</h2>
-        <span class="chip ok">Session: admin</span>
-        <span class="chip" id="clock">--:--:--Z</span>
-        <span class="spacer"></span>
-        <button class="btn btn-sm" id="signout" type="button">Sign Out</button>
-      </div>
-    </div>
-
-    <div class="shell">
-      <aside class="side">
-        <h3>Control Sections</h3>
-        <ul>
-          <li><a href="#main" class="on">Overview</a></li>
-          <li><a href="#main">Alert Force</a></li>
-          <li><a href="#main">DEFCON</a></li>
-          <li><a href="#main">Modules</a></li>
-          <li><a href="#main">Guild Roster</a></li>
-          <li><a href="#main">Console</a></li>
-          <li><a href="#main">Event Log</a></li>
-        </ul>
-        <h3>Reference</h3>
-        <ul>
-          <li><a href="#main">NC3 Procedures</a></li>
-          <li><a href="#main">Surety Checklist</a></li>
-          <li><a href="#main">Munitions Manifest</a></li>
-          <li><a href="#main">Heritage</a></li>
-        </ul>
-        <h3>Command</h3>
-        <ul>
-          <li><a href="#main">8th Air Force</a></li>
-          <li><a href="#main">20th Air Force</a></li>
-        </ul>
-      </aside>
-
-      <div class="main-col">
-        <div class="crumb">Home &nbsp;/&nbsp; <b>Bot Control Panel</b> &nbsp;/&nbsp; Overview</div>
-
-        <div class="grid">
-
-          <!-- BOT STATUS -->
-          <div class="card wide">
-            <h4>Bot Status <span class="chip ok" id="botChip">Online</span></h4>
-            <div class="statusline">
-              <span class="dot" aria-hidden="true"></span>
-              <span class="lbl" id="botState">OPERATIONAL</span>
-              <span class="sm">Shard 1 of 2 &middot; US-East</span>
-            </div>
-            <div class="body"></div>
-            <div class="kv">
-              <div><div class="k">Gateway Latency</div><div class="v"><span id="lat">38</span> ms</div></div>
-              <div><div class="k">Uptime</div><div class="v" id="up">14d 06h</div></div>
-              <div><div class="k">Guilds</div><div class="v">14</div></div>
-              <div><div class="k">Members Cached</div><div class="v">3,842</div></div>
-              <div><div class="k">Commands / 24h</div><div class="v">1,196</div></div>
-              <div><div class="k">Errors / 24h</div><div class="v" id="errs">2</div></div>
-            </div>
-            <div class="body"></div>
-          </div>
-
-          <!-- DEFCON -->
-          <div class="card alert">
-            <h4>DEFCON Posture</h4>
-            <div class="body"></div>
-            <div class="defcon" id="defcon">
-              <button type="button" data-d="5" class="on">5</button>
-              <button type="button" data-d="4">4</button>
-              <button type="button" data-d="3">3</button>
-              <button type="button" data-d="2">2</button>
-              <button type="button" data-d="1">1</button>
-            </div>
-            <p class="dstat">Current: <b id="dLabel">DEFCON 5 &mdash; Normal Readiness</b></p>
-            <div class="body"></div>
-            <p class="dstat" style="margin-top:6px">Setting propagates to all 14 guilds via the alert-force broadcast module.</p>
-            <div class="body"></div>
-          </div>
-
-          <!-- MODULES -->
-          <div class="card wide">
-            <h4>Bot Modules</h4>
-            <div class="body"></div>
-            <div class="tog"><div class="nm">Alert Force Watch<span>Monitors wing readiness channels</span></div><button class="sw on" type="button" aria-label="Toggle Alert Force Watch"></button></div>
-            <div class="tog"><div class="nm">EAM Broadcast<span>Posts Emergency Action Messages on schedule</span></div><button class="sw on" type="button" aria-label="Toggle EAM Broadcast"></button></div>
-            <div class="tog"><div class="nm">Surety Compliance<span>Two-person concept checks and PAL logging</span></div><button class="sw on" type="button" aria-label="Toggle Surety Compliance"></button></div>
-            <div class="tog"><div class="nm">Munitions Manifest<span>Tracks B61-12, B83-1, AGM-86B inventories</span></div><button class="sw on" type="button" aria-label="Toggle Munitions Manifest"></button></div>
-            <div class="tog"><div class="nm">Ops Scheduling<span>Sortie and alert-tour rostering</span></div><button class="sw" type="button" aria-label="Toggle Ops Scheduling"></button></div>
-            <div class="tog"><div class="nm">Personnel Accountability<span>Daily muster across guilds</span></div><button class="sw on" type="button" aria-label="Toggle Personnel Accountability"></button></div>
-            <div class="tog"><div class="nm">Heritage Feed<span>Command history and lineage posts</span></div><button class="sw" type="button" aria-label="Toggle Heritage Feed"></button></div>
-            <div class="body"></div>
-          </div>
-
-          <!-- FORCE POSTURE -->
-          <div class="card">
-            <h4>Force Posture</h4>
-            <div class="body"></div>
-            <table>
-              <thead><tr><th>Platform</th><th>Location</th><th>Status</th></tr></thead>
-              <tbody>
-                <tr><td><b>B-52H</b></td><td>Minot AFB</td><td>Alert</td></tr>
-                <tr><td><b>B-2A</b></td><td>Whiteman AFB</td><td>Alert</td></tr>
-                <tr><td><b>B-1B</b></td><td>Dyess AFB</td><td>Ready</td></tr>
-                <tr><td><b>LGM-30G</b></td><td>Malmstrom AFB</td><td>On alert</td></tr>
-                <tr><td><b>LGM-30G</b></td><td>F.E. Warren AFB</td><td>On alert</td></tr>
-              </tbody>
-            </table>
-            <div class="body"></div>
-          </div>
-
-          <!-- GUILD ROSTER -->
-          <div class="card wide">
-            <h4>Guild Roster</h4>
-            <ul class="roster">
-              <li><img src="https://upload.wikimedia.org/wikipedia/commons/3/3b/Eighth_Air_Force_-_Emblem.png" alt=""><div class="nm">8 AF &mdash; Bomber Operations<span>Barksdale AFB &middot; 412 members</span></div><span class="st">Linked</span></li>
-              <li><img src="https://upload.wikimedia.org/wikipedia/commons/f/fb/Twentieth_Air_Force_-_Emblem.png" alt=""><div class="nm">20 AF &mdash; ICBM Operations<span>F.E. Warren AFB &middot; 389 members</span></div><span class="st">Linked</span></li>
-              <li><img src="https://upload.wikimedia.org/wikipedia/commons/1/1f/2d_Bomb_Wing.png" alt=""><div class="nm">2d Bomb Wing<span>Barksdale AFB &middot; 344 members</span></div><span class="st">Linked</span></li>
-              <li><img src="https://upload.wikimedia.org/wikipedia/commons/1/17/5th_Bomb_Wing.png" alt=""><div class="nm">5th Bomb Wing<span>Minot AFB &middot; 301 members</span></div><span class="st">Linked</span></li>
-              <li><img src="https://upload.wikimedia.org/wikipedia/commons/d/d6/509th_Bomb_Wing.png" alt=""><div class="nm">509th Bomb Wing<span>Whiteman AFB &middot; 276 members</span></div><span class="st">Linked</span></li>
-              <li><img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/90th_Space_Wing.png" alt=""><div class="nm">90th Missile Wing<span>F.E. Warren AFB &middot; 233 members</span></div><span class="st">Linked</span></li>
-              <li><img src="https://upload.wikimedia.org/wikipedia/commons/1/1d/91st_Space_Wing.png" alt=""><div class="nm">91st Missile Wing<span>Minot AFB &middot; 198 members</span></div><span class="st w">Syncing</span></li>
-              <li><img src="https://upload.wikimedia.org/wikipedia/commons/8/83/341st_Space_Wing.png" alt=""><div class="nm">341st Missile Wing<span>Malmstrom AFB &middot; 174 members</span></div><span class="st">Linked</span></li>
-            </ul>
-          </div>
-
-          <!-- CONSOLE -->
-          <div class="card full">
-            <h4>Command Console <span class="chip">Read / Write</span></h4>
-            <div class="body"></div>
-            <div class="console-out" id="cout">
-              <div class="i">AFGSC-BOT control shell ready. Type <b>help</b> for available commands.</div>
-            </div>
-            <div class="body"></div>
-            <form class="console-in" id="cform">
-              <input id="cin" type="text" placeholder="g!status, g!defcon 4, g!eam, g!muster..." spellcheck="false" autocomplete="off">
-              <button type="submit">Send</button>
-            </form>
-            <div class="body"></div>
-          </div>
-
-          <!-- METRICS -->
-          <div class="card">
-            <h4>Traffic</h4>
-            <div class="body"></div>
-            <div class="metric"><div class="top"><span>Gateway</span><b id="m1v">42%</b></div><div class="track"><div class="fill" id="m1" style="width:42%"></div></div></div>
-            <div class="metric"><div class="top"><span>Command Queue</span><b id="m2v">18%</b></div><div class="track"><div class="fill g" id="m2" style="width:18%"></div></div></div>
-            <div class="metric"><div class="top"><span>Memory</span><b id="m3v">61%</b></div><div class="track"><div class="fill y" id="m3" style="width:61%"></div></div></div>
-            <div class="metric"><div class="top"><span>Rate Limit Headroom</span><b id="m4v">74%</b></div><div class="track"><div class="fill g" id="m4" style="width:74%"></div></div></div>
-          </div>
-
-          <!-- LOG -->
-          <div class="card wide">
-            <h4>Live Event Log <span class="chip ok" id="logChip">Streaming</span></h4>
-            <div class="body"></div>
-            <div class="log" id="log"></div>
-            <div class="body"></div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-  </section>
-
-</main>
-
-<footer id="footer">
+<footer>
   <div class="wrap">
     <div class="cols">
-      <div class="brand">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/1/1c/Air_Force_Global_Strike_Command.svg" alt="AFGSC emblem">
-        <p><strong>Air Force Global Strike Command</strong><br>
-        245 Davis Ave East, Suite 200<br>
-        Barksdale AFB, LA 71110<br>
-        Providing combat-ready forces for nuclear and global strike.</p>
-      </div>
-      <div>
-        <h5>Command</h5>
-        <ul>
-          <li><a href="#main">Leadership</a></li>
-          <li><a href="#main">8th Air Force</a></li>
-          <li><a href="#main">20th Air Force</a></li>
-          <li><a href="#main">Units</a></li>
-        </ul>
-      </div>
-      <div>
-        <h5>Resources</h5>
-        <ul>
-          <li><a href="#main">Bot Documentation</a></li>
-          <li><a href="#main">Command Reference</a></li>
-          <li><a href="#main">Surety Procedures</a></li>
-          <li><a href="#main">Heritage</a></li>
-        </ul>
-      </div>
-      <div>
-        <h5>Links</h5>
-        <ul>
-          <li><a href="https://www.afgsc.af.mil/">afgsc.af.mil</a></li>
-          <li><a href="https://www.af.mil/">af.mil</a></li>
-          <li><a href="https://www.defense.gov/">defense.gov</a></li>
-          <li><a href="https://www.stratcom.mil/">stratcom.mil</a></li>
-        </ul>
-      </div>
+      <div><h4>Command</h4>
+        <a href="#/home">Command Post</a><a href="#/id">Bot Identity</a><a href="#/srv">Servers</a></div>
+      <div><h4>Personnel</h4>
+        <a href="#/look">Member Lookup</a><a href="#/mem">Members</a><a href="#/awards">Awards</a></div>
+      <div><h4>Discipline</h4>
+        <a href="#/cases">Cases</a><a href="#/appeals">Appeals</a><a href="#/audit">Audit Log</a></div>
+      <div><h4>Resources</h4>
+        <a href="https://www.afgsc.af.mil" target="_blank" rel="noopener">AFGSC Official Site</a>
+        <a href="https://www.af.mil" target="_blank" rel="noopener">U.S. Air Force</a>
+        <a href="#/priv">Data &amp; Privacy</a></div>
     </div>
-  </div>
-  <div class="legal">
-    <div class="wrap">
-      <span>&copy; 2026 Air Force Global Strike Command &middot; Demonstration system, not an official DoD site.</span>
-      <span><a href="#main">Privacy</a> &middot; <a href="#main">Section 508</a> &middot; <a href="#main">FOIA</a> &middot; <a href="#main">Accessibility</a></span>
+    <div class="fine">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/1/1c/Air_Force_Global_Strike_Command.svg" alt="">
+      <span>Emblem: U.S. Army Institute of Heraldry, public domain (use restricted, 18 U.S.C. §704 / AFI 84-105).</span>
+      <span style="flex:1"></span>
+      <span>Last reviewed: <span id="stamp"></span></span>
     </div>
   </div>
 </footer>
 
+<div id="veil"><div class="modal" id="modal"></div></div>
+<div id="toast"></div>
+
 <script>
-(function(){
-  "use strict";
-
-  var USER = "admin", PASS = "2026";
-  var booted = false, tick = null, logTick = null;
-
-  function $(id){ return document.getElementById(id); }
-
-  /* ---------- LOGIN ---------- */
-  function showApp(){
-    var lv = $("loginView"), av = $("appView");
-    lv.classList.remove("on");
-    av.classList.add("on");
-    if(!booted){ booted = true; boot(); }
-    window.scrollTo(0,0);
-  }
-
-  function submitLogin(ev){
-    if(ev && ev.preventDefault) ev.preventDefault();
-    var err = $("err");
-    try{
-      var u = ($("user").value || "").trim();
-      var p = ($("pass").value || "").trim();
-      err.textContent = "";
-      if(!u || !p){
-        err.textContent = "Enter both username and password.";
-        return false;
-      }
-      if(u.toLowerCase() === USER && p === PASS){
-        showApp();
-      } else {
-        err.textContent = "Access denied — invalid credentials.";
-        $("pass").value = "";
-        $("pass").focus();
-      }
-    }catch(ex){
-      err.textContent = "Error: " + (ex && ex.message ? ex.message : "unknown");
-      try{ showApp(); }catch(e2){}
-    }
-    return false;
-  }
-
-  var form = $("loginForm");
-  if(form){
-    form.addEventListener("submit", submitLogin);
-  }
-  $("signin").addEventListener("click", submitLogin);
-  ["user","pass"].forEach(function(id){
-    var el = $(id);
-    el.addEventListener("keydown", function(ev){
-      var k = ev.key || "";
-      if(k === "Enter" || k === "NumpadEnter" || ev.keyCode === 13){
-        ev.preventDefault();
-        submitLogin(ev);
-      }
+"use strict";
+const API = {
+  base: localStorage.getItem('afgsc-api') || '',
+  async call(path, body){
+    if(!this.base) return null;
+    const r = await fetch(this.base.replace(/\/$/,'') + path, {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body||{})
     });
-    el.addEventListener("keyup", function(ev){
-      if((ev.key || "") === "Enter"){ submitLogin(ev); }
-    });
-  });
-  $("user").focus();
-
-  /* ---------- SIGN OUT ---------- */
-  $("signout").addEventListener("click", function(){
-    if(tick) clearInterval(tick);
-    if(logTick) clearInterval(logTick);
-    tick = logTick = null;
-    booted = false;
-    $("appView").classList.remove("on");
-    $("loginView").classList.add("on");
-    $("user").value = "";
-    $("pass").value = "";
-    $("err").textContent = "";
-    $("user").focus();
-  });
-
-  /* ---------- HELPERS ---------- */
-  function z(n){ return (n < 10 ? "0" : "") + n; }
-  function stamp(){
-    var d = new Date();
-    return z(d.getUTCHours()) + ":" + z(d.getUTCMinutes()) + ":" + z(d.getUTCSeconds()) + "Z";
+    if(!r.ok) throw new Error(path+' '+r.status);
+    return r.json();
   }
-  function addLog(msg, cls){
-    var box = $("log");
-    if(!box) return;
-    var row = document.createElement("div");
-    var t = document.createElement("span");
-    t.className = "t"; t.textContent = stamp();
-    var m = document.createElement("span");
-    m.className = "m" + (cls ? " " + cls : "");
-    m.textContent = msg;
-    row.appendChild(t); row.appendChild(m);
-    box.appendChild(row);
-    while(box.children.length > 120){ box.removeChild(box.firstChild); }
-    box.scrollTop = box.scrollHeight;
-  }
-  function cout(text, cls){
-    var box = $("cout");
-    var d = document.createElement("div");
-    if(cls) d.className = cls;
-    d.textContent = text;
-    box.appendChild(d);
-    box.scrollTop = box.scrollHeight;
-  }
+};
 
-  /* ---------- BOOT ---------- */
-  function boot(){
-    // clock
-    tick = setInterval(function(){
-      var d = new Date();
-      $("clock").textContent = z(d.getUTCHours()) + ":" + z(d.getUTCMinutes()) + ":" + z(d.getUTCSeconds()) + "Z";
-    }, 1000);
+const KEY = 'afgsc-dash-v1';
+const $  = s => document.querySelector(s);
+const $$ = s => Array.prototype.slice.call(document.querySelectorAll(s));
+const uid = () => Math.random().toString(36).slice(2,9);
+const now = () => Date.now();
+const fmt = ts => ts ? new Date(ts).toLocaleString('en-US',{month:'short',day:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+const day = ts => ts ? new Date(ts).toLocaleDateString('en-US',{month:'short',day:'2-digit',year:'numeric'}) : '—';
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const toast = m => { const d=document.createElement('div'); d.className='toast'; d.textContent=m; $('#toast').append(d); setTimeout(()=>d.remove(),3200); };
+const plural = (n,s,p) => n+' '+(n===1?s:p);
 
-    // latency jitter
-    setInterval(function(){
-      var l = 28 + Math.floor(Math.random() * 34);
-      $("lat").textContent = l;
-    }, 4000);
+const CHANNELS = ['#general','#ops','#command-post','#formation','#mod-log','#read-first','#tickets','#announcements'];
+const ROLES = ['@Command Chief','@Flight Lead','@Instructor','@Verified','@Bots'];
+const UNITS = ['5th Bomb Wing','2nd Bomb Wing','509th Bomb Wing','28th Bomb Wing','91st Missile Wing','341st Missile Wing','90th Missile Wing','625th Strategic Ops Squadron'];
+const RANKS = ['Amn','A1C','SrA','SSgt','TSgt','MSgt','SMSgt','CMSgt','2d Lt','1st Lt','Capt','Maj','Lt Col','Col'];
+const NAMES = ['Hollis,R.','Vance,D.','Okonkwo,A.','Brennan,M.','Castillo,J.','Duval,P.','Ferraro,L.','Grady,T.','Haddad,N.','Iverson,K.','Jarvis,W.','Kowalski,E.','Lindqvist,S.','Moreau,C.','Novak,B.'];
 
-    // metrics jitter
-    setInterval(function(){
-      var pairs = [["m1",42,18,86],["m2",18,6,44],["m3",61,44,80],["m4",74,52,97]];
-      pairs.forEach(function(p){
-        var v = p[1] + Math.floor(Math.random() * (p[2] - p[1] + 1));
-        var el = $(p[0]);
-        el.style.width = v + "%";
-        $(p[0] + "v").textContent = v + "%";
-      });
-    }, 3000);
+const CMD_SEED = [
+  ['ban','Moderation','<user> [reason] [days]',2],['kick','Moderation','<user> [reason]',2],
+  ['timeout','Moderation','<user> <time> [reason]',2],['warn','Moderation','<user> <reason>',2],
+  ['warnings','Moderation','[user]',1],['cases','Moderation','[user]',1],['note','Moderation','<user> <text>',2],
+  ['delnote','Moderation','<user> <number>',1],['evidence','Moderation','<case> [link]',1],
+  ['reason','Moderation','<case> <new reason>',1],['lookup','Moderation','<roblox|discord>',1],
+  ['evasioncheck','Moderation','<user>',2],['automod','Anti-Raid','<on|off>',2],
+  ['wordfilter','Anti-Raid','<add|remove|list>',2],['warnthreshold','Anti-Raid','<warnings> <action>',2],
+  ['raidmode','Anti-Raid','<on|off>',2],['joingate','Anti-Raid','<days|off>',2],
+  ['antinuke','Anti-Raid','<on|off|status>',2],['verify','Anti-Raid','',0],['violations','Anti-Raid','[user]',1],
+  ['freeze','Security','[time] [reason]',2],['unfreeze','Security','[reason]',2],
+  ['backup','Security','[name]',2],['restore','Security','<id|latest>',2],
+  ['lock','Channels','[channel] [time]',2],['unlock','Channels','[channel]',2],
+  ['purge','Channels','<amount>',2],['slowmode','Channels','<seconds>',2],
+  ['announce','Channels','<channel> <text>',2],['ticket','Tickets','',0],['report','Tickets','<user> <reason>',0],
+  ['stats','Game','[user]',0],['leaderboard','Game','',0],['ping','Utility','',0],
+  ['help','Utility','[command]',0],['serverinfo','Utility','',0]
+];
 
-    // seed log
-    var seed = [
-      ["Gateway session established on shard 1/2", "g"],
-      ["14 guilds synchronized", ""],
-      ["Alert Force Watch: 5 wings reporting nominal", ""],
-      ["Surety Compliance: two-person concept verified, 6 crews", "g"],
-      ["EAM scheduler loaded — next broadcast 0400Z", ""],
-      ["Personnel Accountability: 3,842 members cached", ""]
-    ];
-    seed.forEach(function(s, i){
-      setTimeout(function(){ addLog(s[0], s[1]); }, i * 320);
-    });
-
-    // rolling log
-    var pool = [
-      ["g!status invoked by admin in 8 AF", "i"],
-      ["Heartbeat acknowledged — 38 ms", ""],
-      ["Munitions Manifest: B61-12 inventory reconciled (72 units)", ""],
-      ["g!muster completed — 96% accounted", "g"],
-      ["B-52H tail 60-0024 logged for alert tour", ""],
-      ["Rate limit window reset", ""],
-      ["Guild 91st Missile Wing resynchronized", ""],
-      ["SORTIE tracker: 4 sorties added to tomorrow's schedule", ""],
-      ["Surety check passed — PAL custody logged", "g"],
-      ["EAM broadcast posted to all alert channels", "w"],
-      ["Latency spike 84 ms — auto-reconnect held", "w"],
-      ["Command queue drained", ""]
-    ];
-    var idx = 0;
-    logTick = setInterval(function(){
-      var item = pool[idx % pool.length];
-      idx++;
-      addLog(item[0], item[1]);
-    }, 5200);
-  }
-
-  /* ---------- DEFCON ---------- */
-  var DLABEL = {
-    5:"DEFCON 5 — Normal Readiness",
-    4:"DEFCON 4 — Increased Intelligence Watch",
-    3:"DEFCON 3 — Increased Force Readiness",
-    2:"DEFCON 2 — Armed Forces Ready",
-    1:"DEFCON 1 — Maximum Readiness"
+function seed(){
+  const members = NAMES.map((n,i)=>({
+    id:uid(), name:n, rank:RANKS[i%RANKS.length], unit:UNITS[i%UNITS.length],
+    discord:'18'+(300000000+i*137), roblox:'strike_'+(1000+i),
+    joined: now()-(i+2)*86400000*11, status: i%7===0?'flagged':'active',
+    notes: i%7===0?'Repeat AFK in formation channels.':''
+  }));
+  const m = k => members[k%members.length];
+  const mod = (on,action,minutes,extra)=>Object.assign({on,action,minutes}, extra||{});
+  return {
+    identity:{ command:'Air Force Global Strike Command', motto:'Global Strike — Forge the Future',
+      uic:'AFGSC', tag:'AFGSC', insignia:'https://upload.wikimedia.org/wikipedia/commons/1/1c/Air_Force_Global_Strike_Command.svg',
+      bio:'Air Force Global Strike Command provides strategic deterrence and global strike capability.' },
+    members,
+    cases:[
+      {id:uid(), member:m(1).name, type:'Verbal warning', reason:'Interrupted formation call', evidence:'https://cdn.discordapp.com/x1.png', mod:'admin', ts:now()-86400000*3, status:'closed'},
+      {id:uid(), member:m(7).name, type:'Strike 2', reason:'Failed to report within 48h of tasking', evidence:'—', mod:'admin', ts:now()-86400000*9, status:'open'},
+      {id:uid(), member:m(4).name, type:'Kick', reason:'Leaked ops briefing to another server', evidence:'https://cdn.discordapp.com/x2.png', mod:'admin', ts:now()-86400000*17, status:'closed'}
+    ],
+    warnings:[
+      {id:uid(), member:m(7).name, reason:'AFK during tasking', points:'1', by:'admin', ts:now()-86400000*9, active:'yes'},
+      {id:uid(), member:m(2).name, reason:'Off-topic in #ops', points:'1', by:'admin', ts:now()-86400000*21, active:'yes'}
+    ],
+    violations:[
+      {id:uid(), member:m(0).name, rule:'Spam', excerpt:'hey hey hey hey hey hey hey', action:'Deleted + warned', ts:now()-86400000*2},
+      {id:uid(), member:m(5).name, rule:'Links', excerpt:'check this out https://example.net/free-stuff', action:'Deleted', ts:now()-86400000*4}
+    ],
+    joinflags:[
+      {id:uid(), member:m(0).name, check:'Default avatar', detail:'Account 2 days old', verdict:'Cleared', action:'None', ts:now()-86400000*1},
+      {id:uid(), member:m(7).name, check:'Same invite as banned member', detail:'Invite by Holloway_S', verdict:'Held', action:'Manual review', ts:now()-86400000*6}
+    ],
+    appeals:[
+      {id:uid(), member:m(4).name, case:'Kick', text:'Rebuttal: briefing was released by the other server first.', status:'pending', ts:now()-86400000*16}
+    ],
+    audit:[], logins:[],
+    locks:[
+      {id:uid(), scope:'Channel', channel:'#general', reason:'Raid drill', by:'admin', ts:now()-86400000*5, active:'no', until:'—'}
+    ],
+    messages:[
+      {id:uid(), kind:'Scheduled', channel:'#command-post', cron:'0 0900 * * *', body:'Daily muster — report to formation.', last:now()-86400000},
+      {id:uid(), kind:'Info', channel:'#read-first', cron:'—', body:'Read the strike rules before posting.', last:now()-86400000*40}
+    ],
+    feed:[
+      {channel:'#general', author:'Vance_D', text:'Muster at 0900, be in uniform.', ts:now()-3600000*2},
+      {channel:'#general', author:'Hollis_R', text:'Copy.', ts:now()-3600000*2+90000},
+      {channel:'#ops', author:'Castillo_J', text:'Package loaded, awaiting tasking.', ts:now()-3600000*1}
+    ],
+    tickets:[
+      {id:uid(), subject:'Rank not updated', opener:m(3).name, status:'open', priority:'Normal', ts:now()-3600000*5,
+       thread:[{by:m(3).name, ts:now()-3600000*5, text:'My promotion to SSgt is not reflected on the roster.'}]}
+    ],
+    documents:[
+      {id:uid(), title:'Standard Operating Procedure 3-1', body:'<h1>SOP 3-1</h1><p>Formation, tasking and reporting standards for all assigned personnel.</p>', pin:'', share:'', enc:false, updated:now()-86400000*4}
+    ],
+    awards:[
+      {id:uid(), name:'Air Force Achievement Medal', ribbon:'#0b2a63,#c9a227,#0b2a63', criteria:'Meritorious service to the command server.'},
+      {id:uid(), name:'Command Commendation', ribbon:'#7a1f1f,#e0e0e0,#7a1f1f', criteria:'Sustained excellence in moderation duty.'}
+    ],
+    templates:[
+      {id:uid(), name:'Muster call', body:'ATTENTION ALL PERSONNEL — muster in <#formation> within 30 minutes.'},
+      {id:uid(), name:'Strike notice', body:'**STRIKE ISSUED** — {member}\nReason: {reason}\nCase: {case}'}
+    ],
+    killLog:[{id:uid(), ts:now()-86400000*2, unit:'5 BW', target:'B-52H — static display', weapon:'—', result:'Credit'}],
+    commands: CMD_SEED.map(c=>({id:uid(), name:c[0], cat:c[1], usage:c[2], level:String(c[3]), enabled:true})),
+    automod:{
+      enabled:true, logChannel:'#mod-log',
+      modules:{
+        spam:        mod(true,'delete',0,{max:6, seconds:5}),
+        duplicate:   mod(true,'delete',0,{max:3, seconds:60}),
+        links:       mod(true,'delete',0,{allow:''}),
+        mentions:    mod(true,'warn',0,{max:6}),
+        caps:        mod(true,'delete',0,{percent:70}),
+        invites:     mod(true,'timeout',10,{})
+      },
+      exempt:{roles:[], channels:['#mod-log']}
+    },
+    wordfilter:[
+      {id:uid(), pattern:'discord.gg', match:'contains', action:'delete', minutes:'0', on:true},
+      {id:uid(), pattern:'free nitro', match:'contains', action:'warn', minutes:'0', on:true},
+      {id:uid(), pattern:'nsfw', match:'word', action:'timeout', minutes:'30', on:true}
+    ],
+    raid:{ raidmode:false, joingate:7, autoRaid:true, joins:10, seconds:30,
+      evasion:{on:true, action:'flag'}, antinuke:true,
+      checks:{noAvatar:true, similar:true, sameInvite:true, priorCases:true, roblox:true}, ageDays:7 },
+    appearance:{ accent:'#00308F', density:'comfortable', fs:'15', govbar:true, mastSub:true },
+    backups:[],
+    settings:{ strikeLimit:'3', retention:'180', tz:'America/Chicago', dmOnAction:true },
+    servers:[
+      {id:uid(), name:'AFGSC Command Post', guild:'881204551', members:'1,284', status:'Linked'},
+      {id:uid(), name:'5 BW Operations', guild:'881204777', members:'412', status:'Linked'}
+    ]
   };
-  $("defcon").addEventListener("click", function(ev){
-    var b = ev.target.closest("button");
-    if(!b) return;
-    Array.prototype.forEach.call(this.children, function(x){ x.classList.remove("on"); });
-    b.classList.add("on");
-    var d = b.getAttribute("data-d");
-    $("dLabel").textContent = DLABEL[d];
-    addLog("DEFCON set to " + d + " by admin — propagated to 14 guilds", d <= "2" ? "w" : "");
-  });
+}
 
-  /* ---------- TOGGLES ---------- */
-  document.querySelectorAll(".sw").forEach(function(sw){
-    sw.addEventListener("click", function(){
-      sw.classList.toggle("on");
-      var nm = sw.parentNode.querySelector(".nm").childNodes[0].textContent.trim();
-      addLog("Module " + nm + " " + (sw.classList.contains("on") ? "enabled" : "disabled"), sw.classList.contains("on") ? "g" : "w");
+let store;
+function load(){
+  try{ store = JSON.parse(localStorage.getItem(KEY)); }catch(e){ store = null; }
+  if(!store || !store.members) { store = seed(); persist(); }
+  const base = seed();
+  ['automod','raid','appearance','settings','identity'].forEach(k=>{
+    store[k] = Object.assign(base[k], store[k]||{});
+  });
+  if(!store.joinflags) store.joinflags = [];
+  if(!store.commands) store.commands = base.commands;
+  if(!store.wordfilter) store.wordfilter = base.wordfilter;
+  if(!store.feed) store.feed = base.feed;
+  if(!store.backups) store.backups = [];
+}
+function persist(){ localStorage.setItem(KEY, JSON.stringify(store)); }
+function audit(action,target,detail){
+  store.audit.unshift({id:uid(), ts:now(), actor:'admin', action, target:target||'—', detail:detail||''});
+  store.audit = store.audit.slice(0,400); persist();
+}
+
+function modal(title, bodyHtml, footHtml){
+  $('#modal').innerHTML = '<h3>'+esc(title)+'</h3><div class="mbody">'+bodyHtml+'</div><div class="mfoot">'+(footHtml||'<button class="btn ghost" data-close>Cancel</button>')+'</div>';
+  $('#veil').classList.add('on');
+  $$('#modal [data-close]').forEach(b=>b.onclick=closeModal);
+  return $('#modal');
+}
+function closeModal(){ $('#veil').classList.remove('on'); $('#modal').innerHTML=''; }
+$('#veil').onclick = e => { if(e.target.id==='veil') closeModal(); };
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
+
+function table(cols, rows, emptyMsg){
+  if(!rows.length) return '<div class="empty">'+esc(emptyMsg||'No records on file.')+'</div>';
+  return '<table><thead><tr>'+cols.map(c=>'<th>'+esc(c.label)+'</th>').join('')+'</tr></thead><tbody>'+
+    rows.map(r=>'<tr>'+cols.map(c=>'<td class="'+(c.cls||'')+'">'+(c.fmt?c.fmt(r):esc(r[c.k]))+'</td>').join('')+'</tr>').join('')+
+    '</tbody></table>';
+}
+
+function crud(cfg){
+  return function(){
+    const rows = store[cfg.key] || [];
+    const cols = cfg.cols.slice();
+    cols.push({label:'', cls:'actions', fmt:r=>'<button class="btn ghost sm" data-edit="'+r.id+'">Edit</button> <button class="btn danger sm" data-del="'+r.id+'">Del</button>'});
+    $('#view').innerHTML =
+      '<div class="page-h"><h1>'+esc(cfg.title)+'</h1><p>'+esc(cfg.sub||'')+'</p><span class="spacer"></span>'+
+      '<button class="btn gold" id="newBtn">+ New Record</button></div>'+
+      '<div class="card"><header>'+esc(cfg.title)+' — '+rows.length+' on file<span class="spacer"></span>'+
+      '<button class="btn ghost sm" id="csvBtn">Export CSV</button></header>'+
+      '<div class="body" style="padding:0">'+table(cols, rows, cfg.empty)+'</div></div>';
+    $('#newBtn').onclick = ()=> openForm(cfg, null);
+    $('#csvBtn').onclick = ()=>{
+      const head = cfg.cols.map(c=>c.label).join(',');
+      const body = rows.map(r=>cfg.cols.map(c=>'"'+String(r[c.k]==null?'':r[c.k]).replace(/"/g,'""')+'"').join(',')).join('\n');
+      download(cfg.key+'.csv','text/csv',head+'\n'+body);
+    };
+    $$('#view [data-edit]').forEach(b=>b.onclick=()=>openForm(cfg, rows.filter(r=>r.id===b.dataset.edit)[0]));
+    $$('#view [data-del]').forEach(b=>b.onclick=()=>{
+      if(!confirm('Delete this record permanently?')) return;
+      store[cfg.key] = rows.filter(r=>r.id!==b.dataset.del);
+      audit('delete', cfg.key, ''); persist(); route();
     });
-  });
+  };
+}
 
-  /* ---------- CONSOLE ---------- */
-  $("cform").addEventListener("submit", function(ev){
-    ev.preventDefault();
-    var input = $("cin");
-    var raw = input.value.trim();
-    if(!raw) return;
-    cout("> " + raw, "i");
-    input.value = "";
-
-    var cmd = raw.replace(/^g!/, "").toLowerCase();
-    var out;
-
-    if(cmd === "help"){
-      out = "Commands: status, defcon <1-5>, eam, muster, roster, sortie, surety, ping, whoami, clear";
-    } else if(cmd === "status"){
-      out = "Shard 1/2 OPERATIONAL | latency 38ms | 14 guilds | 3842 members | 2 errors/24h";
-    } else if(cmd.indexOf("defcon") === 0){
-      var d = raw.split(/\s+/)[1];
-      if(d && DLABEL[d]){
-        Array.prototype.forEach.call($("defcon").children, function(x){ x.classList.toggle("on", x.getAttribute("data-d") === d); });
-        $("dLabel").textContent = DLABEL[d];
-        addLog("DEFCON set to " + d + " via console", "w");
-        out = "DEFCON " + d + " set. " + DLABEL[d];
-      } else {
-        out = "Usage: g!defcon <1-5>";
-      }
-    } else if(cmd === "eam"){
-      var code = "";
-      for(var i=0;i<2;i++){ code += Math.random().toString(36).slice(2,6).toUpperCase() + "-"; }
-      code = code.replace(/-$/,"");
-      out = "SKYKING, SKYKING. Do not answer. Message follows. Authentication " + code + ". Broadcast to 14 guilds.";
-      addLog("Manual EAM broadcast — auth " + code, "w");
-    } else if(cmd === "muster"){
-      var pct = 92 + Math.floor(Math.random()*8);
-      out = "Personnel accountability complete: " + pct + "% across 14 guilds.";
-      addLog("Muster run via console: " + pct + "%", "g");
-    } else if(cmd === "roster"){
-      out = "8 AF, 20 AF, 2 BW, 5 BW, 509 BW, 90 MW, 91 MW, 341 MW — 8 linked, 1 syncing.";
-    } else if(cmd === "sortie"){
-      out = "4 sorties staged for 15 NOV: 2x B-52H (Minot), 1x B-2A (Whiteman), 1x B-1B (Dyess).";
-    } else if(cmd === "surety"){
-      out = "Surety check PASSED. PAL custody logged. Two-person concept verified, 6 crews.";
-      addLog("Surety check passed via console", "g");
-    } else if(cmd === "ping"){
-      out = "Pong. Gateway 38 ms, REST 61 ms.";
-    } else if(cmd === "whoami"){
-      out = "admin — operator, AFGSC Bot Control. Session privileges: full.";
-    } else if(cmd === "clear"){
-      $("cout").innerHTML = "";
-      return;
-    } else {
-      out = "Unknown command: " + raw + ". Try g!help";
+function openForm(cfg, rec){
+  const fields = cfg.fields.map(f=>{
+    const v = rec ? (rec[f.k]==null?'':rec[f.k]) : (f.def==null?'':f.def);
+    if(f.type==='select'){
+      return '<label class="f"><span>'+esc(f.label)+'</span><select name="'+f.k+'">'+
+        f.opts.map(o=>'<option '+(String(o)===String(v)?'selected':'')+'>'+esc(o)+'</option>').join('')+'</select></label>';
     }
-    cout(out);
-  });
+    if(f.type==='textarea') return '<label class="f"><span>'+esc(f.label)+'</span><textarea name="'+f.k+'">'+esc(v)+'</textarea></label>';
+    if(f.type==='member') return '<label class="f"><span>'+esc(f.label)+'</span><select name="'+f.k+'">'+
+      store.members.map(mm=>'<option '+(mm.name===v?'selected':'')+'>'+esc(mm.name)+'</option>').join('')+'</select></label>';
+    return '<label class="f"><span>'+esc(f.label)+'</span><input name="'+f.k+'" type="'+(f.type||'text')+'" value="'+esc(v)+'"></label>';
+  }).join('');
 
+  const m = modal((rec?'Edit':'New')+' — '+cfg.title, fields,
+    '<button class="btn ghost" data-close>Cancel</button><button class="btn" id="saveBtn">Save Record</button>');
+
+  m.querySelector('#saveBtn').onclick = ()=>{
+    const out = {};
+    cfg.fields.forEach(f=>{ const el = m.querySelector('[name="'+f.k+'"]'); out[f.k] = el ? el.value.trim() : ''; });
+    if(rec){ Object.assign(rec, out); audit('update', cfg.key, ''); }
+    else { store[cfg.key].unshift(Object.assign({id:uid()}, cfg.stamp?cfg.stamp():{}, out)); audit('create', cfg.key, ''); }
+    persist(); closeModal(); route(); toast('Record saved.');
+  };
+}
+
+function download(name, mime, text){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], {type:mime}));
+  a.download = name; a.click(); URL.revokeObjectURL(a.href);
+}
+
+const P = {};
+
+/* ---------------- overview ---------------- */
+P.home = ()=>{
+  const open = store.cases.filter(c=>c.status==='open').length;
+  const pend = store.appeals.filter(a=>a.status==='pending').length;
+  const v24 = store.violations.filter(v=>v.ts > now()-86400000).length;
+  $('#view').innerHTML =
+    '<div class="page-h"><h1>Command Post</h1><p>Readiness picture across the assigned servers. All figures live.</p></div>'+
+    '<div class="grid4">'+
+      '<div class="stat"><div class="n">'+store.members.length+'</div><div class="l">Personnel on roster</div></div>'+
+      '<div class="stat g"><div class="n">'+open+'</div><div class="l">Open case files</div></div>'+
+      '<div class="stat"><div class="n">'+v24+'</div><div class="l">Automod catches / 24h</div></div>'+
+      '<div class="stat"><div class="n">'+pend+'</div><div class="l">Appeals pending</div></div>'+
+    '</div>'+
+    '<div class="grid2">'+
+      '<div class="card"><header>Posture<span class="spacer"></span><a href="#/raid" style="font-size:11px">Raid protection</a></header><div class="body">'+
+        [['Automod',store.automod.enabled],['Raid mode',store.raid.raidmode],['Anti-nuke',store.raid.antinuke],['Ban evasion check',store.raid.evasion.on],['Join gate',store.raid.joingate>0]]
+          .map(([k,v])=>'<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #eef1f6"><span>'+k+'</span><span class="tag '+(v?'ok':'mute')+'">'+(v?'ON':'OFF')+'</span></div>').join('')+
+        '<p class="hint" style="margin-top:12px">Strike limit: <b>'+esc(store.settings.strikeLimit)+'</b> &middot; Retention: <b>'+esc(store.settings.retention)+' days</b></p>'+
+      '</div></div>'+
+      '<div class="card"><header>Recent cases<span class="spacer"></span><a href="#/cases" style="font-size:11px">All</a></header>'+
+        '<div class="body" style="padding:0">'+table([
+          {label:'Member', fmt:r=>esc(r.member)},
+          {label:'Type', fmt:r=>'<span class="tag info">'+esc(r.type)+'</span>'},
+          {label:'Status', fmt:r=>'<span class="tag '+(r.status==='open'?'warn':'mute')+'">'+esc(r.status)+'</span>'},
+          {label:'Filed', fmt:r=>day(r.ts)}
+        ], store.cases.slice(0,6), 'No cases filed.')+'</div></div>'+
+    '</div>'+
+    '<div class="card"><header>Audit tail</header><div class="body" style="padding:0">'+table([
+      {label:'When', fmt:r=>fmt(r.ts)},{label:'Actor', k:'actor'},
+      {label:'Action', fmt:r=>'<span class="tag info">'+esc(r.action)+'</span>'},{label:'Detail', k:'detail'}
+    ], store.audit.slice(0,8), 'No audit entries yet.')+'</div></div>';
+};
+
+/* ---------------- lookup ---------------- */
+P.look = ()=>{
+  $('#view').innerHTML =
+    '<div class="page-h"><h1>Member Lookup</h1><p>Resolve a Roblox handle, Discord ID or name against the roster and linked-account index.</p></div>'+
+    '<div class="card"><header>Query</header><div class="body">'+
+      '<div class="row"><label class="f" style="flex:3 1 320px"><span>Search term</span>'+
+      '<input id="q" placeholder="Roblox username, Discord ID, or name (Last,F.)"></label>'+
+      '<button class="btn gold" id="goBtn" style="flex:0 0 auto">Run Lookup</button></div>'+
+      '<p class="hint">RoWifi returns the linked Roblox account for a Discord ID. Manual entry is authoritative when the link is stale.</p>'+
+    '</div></div><div id="res"></div>';
+
+  const run = ()=>{
+    const q = $('#q').value.trim().toLowerCase();
+    if(!q) return toast('Enter a search term.');
+    const hits = store.members.filter(m=>[m.name,m.discord,m.roblox].join(' ').toLowerCase().indexOf(q)>-1);
+    audit('lookup','RoWifi',q);
+    if(!hits.length){
+      $('#res').innerHTML = '<div class="card"><header>Nothing found</header><div class="body"><p>No record matched <span class="mono">'+esc(q)+'</span>. Try the exact Roblox username, the Roblox ID, or a Discord ID.</p>'+
+        '<button class="btn" id="mkBtn">Create personnel record</button></div></div>';
+      $('#mkBtn').onclick = ()=>{ location.hash='#/mem'; setTimeout(()=>{ const b=$('#newBtn'); if(b) b.click(); },80); };
+      return;
+    }
+    $('#res').innerHTML = hits.map(m=>{
+      const w = store.warnings.filter(x=>x.member===m.name).length;
+      const c = store.cases.filter(x=>x.member===m.name).length;
+      const f = store.joinflags.filter(x=>x.member===m.name).length;
+      return '<div class="card"><header>Personnel record<span class="spacer"></span><span class="tag '+(m.status==='active'?'ok':'bad')+'">'+esc(m.status)+'</span></header><div class="body">'+
+        '<div class="insignia-box">'+
+        '<div style="width:112px;height:112px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-family:Roboto Condensed;font-size:34px;border:1px solid var(--blue-dk)">'+esc(m.name.slice(0,2).toUpperCase())+'</div>'+
+        '<div><h2 style="font-size:19px">'+esc(m.rank)+' '+esc(m.name)+'</h2>'+
+        '<p class="muted" style="margin:2px 0 8px">'+esc(m.unit)+'</p>'+
+        '<div class="mono">Discord <b>'+esc(m.discord)+'</b><br>Roblox <b>'+esc(m.roblox)+'</b><br>Joined '+day(m.joined)+'</div></div></div>'+
+        '<div class="grid3" style="margin-top:16px">'+
+          '<div class="stat"><div class="n">'+w+'</div><div class="l">Warnings</div></div>'+
+          '<div class="stat g"><div class="n">'+c+'</div><div class="l">Cases</div></div>'+
+          '<div class="stat"><div class="n">'+f+'</div><div class="l">Join flags</div></div></div>'+
+        '<div class="row" style="margin-top:16px">'+
+          '<button class="btn ghost" data-sync="'+esc(m.discord)+'">Sync via RoWifi</button>'+
+          '<button class="btn ghost" data-case="'+esc(m.name)+'">File case</button>'+
+          '<button class="btn ghost" data-warn="'+esc(m.name)+'">Warn</button></div>'+
+        (m.notes?'<p class="hint" style="margin-top:14px"><b>Notes:</b> '+esc(m.notes)+'</p>':'')+
+      '</div></div>';
+    }).join('');
+
+    $$('#res [data-sync]').forEach(b=>b.onclick=()=>{
+      toast('RoWifi: querying linked-account index…');
+      API.call('/rowifi/lookup',{discord:b.dataset.sync}).catch(()=>{});
+      setTimeout(()=>toast('RoWifi: link verified (cached).'),700);
+    });
+    $$('#res [data-case]').forEach(b=>b.onclick=()=>{
+      location.hash='#/cases';
+      setTimeout(()=>{ const n=$('#newBtn'); if(n) n.click(); setTimeout(()=>{ const s=document.querySelector('[name="member"]'); if(s) s.value=b.dataset.case; },50); },80);
+    });
+    $$('#res [data-warn]').forEach(b=>b.onclick=()=>{
+      location.hash='#/warn';
+      setTimeout(()=>{ const n=$('#newBtn'); if(n) n.click(); setTimeout(()=>{ const s=document.querySelector('[name="member"]'); if(s) s.value=b.dataset.warn; },50); },80);
+    });
+  };
+  $('#goBtn').onclick = run;
+  $('#q').addEventListener('keydown', e=>{ if(e.key==='Enter') run(); });
+};
+
+/* ---------------- crud pages ---------------- */
+P.mem = crud({
+  key:'members', title:'Members', sub:'Authoritative roster. Every edit is audited.',
+  stamp:()=>({joined:now(), status:'active'}), empty:'Roster is empty.',
+  cols:[
+    {label:'Name', fmt:r=>'<b>'+esc(r.name)+'</b>'},{label:'Rank', k:'rank'},{label:'Unit', k:'unit'},
+    {label:'Discord', fmt:r=>'<span class="mono">'+esc(r.discord)+'</span>'},
+    {label:'Roblox', fmt:r=>'<span class="mono">'+esc(r.roblox)+'</span>'},
+    {label:'Status', fmt:r=>'<span class="tag '+(r.status==='active'?'ok':'bad')+'">'+esc(r.status)+'</span>'},
+    {label:'Joined', fmt:r=>day(r.joined)}
+  ],
+  fields:[
+    {k:'name', label:'Name (Last,F.)'},{k:'rank', label:'Rank', type:'select', opts:RANKS},
+    {k:'unit', label:'Unit', type:'select', opts:UNITS},{k:'discord', label:'Discord ID'},
+    {k:'roblox', label:'Roblox username'},
+    {k:'status', label:'Status', type:'select', opts:['active','flagged','AWOL','separated']},
+    {k:'notes', label:'Notes', type:'textarea'}
+  ]
+});
+
+P.cases = crud({
+  key:'cases', title:'Cases', sub:'Every moderation action gets a numbered case file with evidence.',
+  stamp:()=>({ts:now(), mod:'admin', status:'open'}),
+  cols:[
+    {label:'Case', fmt:r=>'<span class="mono">#'+esc(r.id.toUpperCase())+'</span>'},
+    {label:'Member', k:'member'},{label:'Type', fmt:r=>'<span class="tag info">'+esc(r.type)+'</span>'},
+    {label:'Reason', k:'reason'},
+    {label:'Evidence', fmt:r=>r.evidence&&r.evidence!=='—'?'<a href="'+esc(r.evidence)+'" target="_blank" rel="noopener">link</a>':'—'},
+    {label:'Status', fmt:r=>'<span class="tag '+(r.status==='open'?'warn':'mute')+'">'+esc(r.status)+'</span>'},
+    {label:'Filed', fmt:r=>day(r.ts)}
+  ],
+  fields:[
+    {k:'member', label:'Member', type:'member'},
+    {k:'type', label:'Action', type:'select', opts:['Verbal warning','Written reprimand','Strike 1','Strike 2','Strike 3','Timeout','Kick','Ban','Demotion']},
+    {k:'reason', label:'Reason'},{k:'evidence', label:'Evidence URL'},
+    {k:'status', label:'Status', type:'select', opts:['open','closed','appealed']}
+  ]
+});
+
+P.warn = crud({
+  key:'warnings', title:'Warnings', sub:'Points count toward the strike threshold set under Settings.',
+  stamp:()=>({ts:now(), by:'admin', active:'yes'}),
+  cols:[
+    {label:'Member', k:'member'},{label:'Reason', k:'reason'},
+    {label:'Pts', fmt:r=>'<span class="tag warn">'+esc(r.points)+'</span>'},
+    {label:'By', k:'by'},{label:'Date', fmt:r=>day(r.ts)},
+    {label:'Active', fmt:r=>'<span class="tag '+(r.active==='yes'?'bad':'mute')+'">'+esc(r.active)+'</span>'}
+  ],
+  fields:[
+    {k:'member', label:'Member', type:'member'},{k:'reason', label:'Reason'},
+    {k:'points', label:'Points', type:'select', opts:['1','2','3']},
+    {k:'active', label:'Active', type:'select', opts:['yes','no']}
+  ]
+});
+
+P.flags = crud({
+  key:'joinflags', title:'Join Flags', sub:'New members who tripped a join check. Clear or action each one.',
+  stamp:()=>({ts:now()}), empty:'No join flags.',
+  cols:[
+    {label:'Member', k:'member'},{label:'Check tripped', k:'check'},{label:'Detail', k:'detail'},
+    {label:'Verdict', fmt:r=>'<span class="tag '+(r.verdict==='Held'?'warn':'ok')+'">'+esc(r.verdict)+'</span>'},
+    {label:'Action', k:'action'},{label:'When', fmt:r=>fmt(r.ts)}
+  ],
+  fields:[
+    {k:'member', label:'Member', type:'member'},
+    {k:'check', label:'Check', type:'select', opts:['Default avatar','Similar name','Same invite as banned member','Prior cases','Roblox match','Account too new']},
+    {k:'detail', label:'Detail'},{k:'verdict', label:'Verdict', type:'select', opts:['Held','Cleared']},
+    {k:'action', label:'Action taken'}
+  ]
+});
+
+P.vio = crud({
+  key:'violations', title:'Automod Violations', sub:'What Automod caught, with a 500-character excerpt.',
+  stamp:()=>({ts:now()}), empty:'Automod has caught nothing.',
+  cols:[
+    {label:'Member', k:'member'},{label:'Rule', fmt:r=>'<span class="tag info">'+esc(r.rule)+'</span>'},
+    {label:'Excerpt', fmt:r=>'<span class="muted mono">'+esc(r.excerpt)+'</span>'},
+    {label:'Action', k:'action'},{label:'When', fmt:r=>fmt(r.ts)}
+  ],
+  fields:[
+    {k:'member', label:'Member', type:'member'},
+    {k:'rule', label:'Rule', type:'select', opts:['Spam','Duplicate','Links','Mentions','Caps','Invites','Word filter']},
+    {k:'excerpt', label:'Message excerpt', type:'textarea'},{k:'action', label:'Action taken'}
+  ]
+});
+
+P.appeals = crud({
+  key:'appeals', title:'Appeals', sub:'Rebuttals against case files. Decisions are recorded on the case.',
+  stamp:()=>({ts:now(), status:'pending'}),
+  cols:[
+    {label:'Member', k:'member'},{label:'Against', k:'case'},
+    {label:'Rebuttal', fmt:r=>'<span class="muted">'+esc(r.text)+'</span>'},
+    {label:'Status', fmt:r=>'<span class="tag '+(r.status==='pending'?'warn':r.status==='granted'?'ok':'mute')+'">'+esc(r.status)+'</span>'},
+    {label:'Filed', fmt:r=>day(r.ts)}
+  ],
+  fields:[
+    {k:'member', label:'Member', type:'member'},{k:'case', label:'Case or action appealed'},
+    {k:'text', label:'Rebuttal', type:'textarea'},
+    {k:'status', label:'Status', type:'select', opts:['pending','granted','denied']}
+  ]
+});
+
+/* ---------------- automod rules ---------------- */
+const MODS = [
+  ['spam','Spam','Too many messages from one member in a short time.',[['max','Messages'],['seconds','Within (s)']]],
+  ['duplicate','Duplicate messages','The same message sent again and again.',[['max','Repeats'],['seconds','Window (s)']]],
+  ['links','Links','Any link posted outside exempt channels.',[['allow','Allowed domains (comma)']]],
+  ['mentions','Mass mentions','Too many mentions in one message.',[['max','Max mentions']]],
+  ['caps','Excessive caps','Long messages written mostly in capitals.',[['percent','Caps % threshold']]],
+  ['invites','Discord invites','discord.gg invites posted by non-staff.',[]]
+];
+const ACTIONS = ['delete','warn','timeout','kick'];
+
+P.auto = ()=>{
+  const A = store.automod;
+  $('#view').innerHTML =
+    '<div class="page-h"><h1>Automod Rules</h1><p>Automatic rules that protect the server. Each rule carries its own action.</p>'+
+    '<span class="spacer"></span><button class="btn ghost" id="reset">Discard changes</button><button class="btn" id="save">Save Automod</button></div>'+
+    '<div class="card"><header>Master<span class="spacer"></span><span class="muted" style="font-size:11px;letter-spacing:0">Violations keep a 500-character excerpt</span></header>'+
+      '<div class="body"><div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">'+
+      '<button class="sw '+(A.enabled?'on':'')+'" id="master"></button>'+
+      '<b>Automod is '+(A.enabled?'ON':'off')+'</b>'+
+      '<span style="flex:1"></span>'+
+      '<label class="f" style="margin:0;min-width:200px"><span>Log channel</span><select id="logch">'+
+        CHANNELS.map(c=>'<option '+(c===A.logChannel?'selected':'')+'>'+c+'</option>').join('')+'</select></label>'+
+      '</div></div></div>'+
+    '<div class="card"><header>Modules</header><div class="body">'+
+      MODS.map(mo=>{
+        const cfg = A.modules[mo[0]];
+        return '<div class="modrow '+(cfg.on?'':'off')+'" data-mod="'+mo[0]+'">'+
+          '<div><h4>'+mo[1]+'</h4><p>'+mo[2]+'</p><div class="modctl">'+
+          '<label>Action <select data-k="action">'+ACTIONS.map(a=>'<option '+(a===cfg.action?'selected':'')+'>'+a+'</option>').join('')+'</select></label>'+
+          '<label>Timeout <input type="number" min="0" max="1440" data-k="minutes" value="'+(cfg.minutes||0)+'" style="width:74px"> min</label>'+
+          mo[3].map(pr=>'<label>'+pr[1]+' <input type="number" min="0" data-k="'+pr[0]+'" value="'+(cfg[pr[0]]==null?'':cfg[pr[0]])+'" style="width:76px"></label>').join('')+
+          (mo[0]==='links'?'<label>Allowed <input type="text" data-k="allow" value="'+esc(cfg.allow||'')+'" style="width:200px"></label>':'')+
+          '</div></div>'+
+          '<button class="sw '+(cfg.on?'on':'')+'" data-sw="'+mo[0]+'"></button></div>';
+      }).join('')+
+    '</div></div>'+
+    '<div class="card"><header>Exemptions</header><div class="body">'+
+      '<p class="hint" style="margin:0 0 10px">Members with an exempt role, and messages in an exempt channel, skip every rule.</p>'+
+      '<div class="grid2"><div><span class="glbl" style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#6a7280;font-weight:700">Exempt roles</span>'+
+      '<div class="chk">'+ROLES.map(r=>'<label><input type="checkbox" data-ex="roles" value="'+esc(r)+'" '+(A.exempt.roles.indexOf(r)>-1?'checked':'')+'> '+esc(r)+'</label>').join('')+'</div></div>'+
+      '<div><span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#6a7280;font-weight:700">Exempt channels</span>'+
+      '<div class="chk">'+CHANNELS.map(c=>'<label><input type="checkbox" data-ex="channels" value="'+esc(c)+'" '+(A.exempt.channels.indexOf(c)>-1?'checked':'')+'> '+esc(c)+'</label>').join('')+'</div></div></div>'+
+    '</div></div>';
+
+  $('#master').onclick = e=>{ A.enabled=!A.enabled; e.currentTarget.classList.toggle('on',A.enabled); route(); };
+  $$('[data-sw]').forEach(b=>b.onclick=()=>{
+    const k=b.dataset.sw; A.modules[k].on=!A.modules[k].on;
+    b.classList.toggle('on',A.modules[k].on);
+    b.closest('.modrow').classList.toggle('off',!A.modules[k].on);
+  });
+  $$('.modrow [data-k]').forEach(inp=>inp.oninput=()=>{
+    const k=inp.dataset.k, mod=inp.closest('.modrow').dataset.mod;
+    A.modules[mod][k] = inp.type==='number' ? Number(inp.value) : inp.value;
+  });
+  $('#save').onclick = ()=>{
+    A.logChannel = $('#logch').value;
+    A.exempt.roles = $$('[data-ex="roles"]:checked').map(i=>i.value);
+    A.exempt.channels = $$('[data-ex="channels"]:checked').map(i=>i.value);
+    audit('automod','save', A.enabled?'on':'off'); persist(); toast('Automod saved.');
+  };
+  $('#reset').onclick = ()=>{ store.automod = seed().automod; persist(); route(); toast('Changes discarded.'); };
+};
+
+/* ---------------- word filter ---------------- */
+P.wf = ()=>{
+  const rows = store.wordfilter;
+  $('#view').innerHTML =
+    '<div class="page-h"><h1>Word Filter</h1><p>Your own word and phrase rules. Match modes: whole word, contains, exact message, regular expression.</p>'+
+    '<span class="spacer"></span><button class="btn gold" id="add">+ Add Rule</button></div>'+
+    '<div class="card"><header>Rules — '+rows.length+'</header><div class="body" style="padding:0">'+
+    (rows.length ? '<table><thead><tr><th>Pattern</th><th>Match</th><th>Action</th><th>Timeout</th><th>On</th><th></th></tr></thead><tbody>'+
+      rows.map(r=>'<tr><td class="mono">'+esc(r.pattern)+'</td>'+
+        '<td><select data-m="'+r.id+'">'+['word','contains','exact','regex'].map(x=>'<option '+(x===r.match?'selected':'')+'>'+x+'</option>').join('')+'</select></td>'+
+        '<td><select data-a="'+r.id+'">'+ACTIONS.map(a=>'<option '+(a===r.action?'selected':'')+'>'+a+'</option>').join('')+'</select></td>'+
+        '<td><input type="number" min="0" data-t="'+r.id+'" value="'+(r.minutes||0)+'" style="width:70px"></td>'+
+        '<td><button class="sw '+(r.on?'on':'')+'" data-o="'+r.id+'"></button></td>'+
+        '<td class="actions"><button class="btn danger sm" data-d="'+r.id+'">Del</button></td></tr>').join('')+
+      '</tbody></table>' : '<div class="empty">No word filter rules.</div>')+
+    '</div></div>'+
+    '<div class="card"><header>Test a message</header><div class="body">'+
+      '<div class="row"><label class="f" style="flex:4 1 320px"><span>Message</span><input id="testMsg" placeholder="Type a message to test against the rules"></label>'+
+      '<button class="btn ghost" id="testBtn" style="flex:0 0 auto">Test</button></div>'+
+      '<div id="testOut"></div></div></div>';
+
+  const match = (r,t)=>{
+    const p=(r.pattern||'').trim(); if(!p||!r.on) return false;
+    const s=t.toLowerCase(), q=p.toLowerCase();
+    if(r.match==='word') return new RegExp('\\b'+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i').test(s);
+    if(r.match==='exact') return s.trim()===q;
+    if(r.match==='regex'){ try{ return new RegExp(p,'i').test(t); }catch(e){ return false; } }
+    return s.indexOf(q)>-1;
+  };
+
+  $$('[data-m]').forEach(s=>s.onchange=()=>{ store.wordfilter.filter(r=>r.id===s.dataset.m)[0].match=s.value; persist(); });
+  $$('[data-a]').forEach(s=>s.onchange=()=>{ store.wordfilter.filter(r=>r.id===s.dataset.a)[0].action=s.value; persist(); });
+  $$('[data-t]').forEach(i=>i.oninput=()=>{ store.wordfilter.filter(r=>r.id===i.dataset.t)[0].minutes=i.value; persist(); });
+  $$('[data-o]').forEach(b=>b.onclick=()=>{
+    const r = store.wordfilter.filter(x=>x.id===b.dataset.o)[0];
+    r.on=!r.on; b.classList.toggle('on',r.on); persist();
+  });
+  $$('[data-d]').forEach(b=>b.onclick=()=>{
+    store.wordfilter = store.wordfilter.filter(r=>r.id!==b.dataset.d); audit('wordfilter','delete',''); persist(); route();
+  });
+  $('#add').onclick = ()=>{
+    const m = modal('Add Word Filter Rule',
+      '<label class="f"><span>Pattern</span><input name="pattern"></label>'+
+      '<label class="f"><span>Match</span><select name="match">'+['word','contains','exact','regex'].map(x=>'<option>'+x+'</option>').join('')+'</select></label>'+
+      '<label class="f"><span>Action</span><select name="action">'+ACTIONS.map(a=>'<option>'+a+'</option>').join('')+'</select></label>'+
+      '<label class="f"><span>Timeout minutes</span><input name="minutes" type="number" min="0" value="0"></label>',
+      '<button class="btn ghost" data-close>Cancel</button><button class="btn" id="sv">Add</button>');
+    m.querySelector('#sv').onclick = ()=>{
+      const g = n => m.querySelector('[name="'+n+'"]').value.trim();
+      if(!g('pattern')) return toast('Pattern required.');
+      store.wordfilter.unshift({id:uid(), pattern:g('pattern'), match:g('match'), action:g('action'), minutes:g('minutes'), on:true});
+      audit('wordfilter','create',g('pattern')); persist(); closeModal(); route();
+    };
+  };
+  $('#testBtn').onclick = ()=>{
+    const t = $('#testMsg').value;
+    const hits = store.wordfilter.filter(r=>match(r,t));
+    $('#testOut').innerHTML = hits.length
+      ? '<p class="hint" style="margin-top:10px">Matched '+plural(hits.length,'rule','rules')+':</p>'+
+        hits.map(r=>'<div class="tag bad" style="margin-right:6px">'+esc(r.pattern)+' → '+esc(r.action)+'</div>').join('')
+      : '<p class="hint" style="margin-top:10px">No rule matched.</p>';
+  };
+};
+
+/* ---------------- raid protection ---------------- */
+P.raid = ()=>{
+  const R = store.raid;
+  const box = (on,label,desc,extra)=>
+    '<div class="modrow '+(on?'':'off')+'"><div><h4>'+label+'</h4><p>'+desc+'</p>'+(extra||'')+'</div>'+
+    '<button class="sw '+(on?'on':'')+'" data-t="'+label+'"></button></div>';
+
+  $('#view').innerHTML =
+    '<div class="page-h"><h1>Raid Protection</h1><p>Freeze, raid mode, join gate, ban evasion, anti-nuke and invite tracking.</p>'+
+    '<span class="spacer"></span><button class="btn danger" id="panic">Panic: lockdown</button></div>'+
+    '<div class="card"><header>Freeze and raid mode</header><div class="body">'+
+      box(store.settings.freeze,'Freeze','Blocks every command except unfreeze while active.','')+
+      box(R.raidmode,'Raid mode','Joins are gated, posting is restricted, and new accounts are held.',''+
+        '<div class="modctl"><label>Auto raid mode <select data-r="autoRaid"><option value="1" '+(R.autoRaid?'selected':'')+'>On</option><option value="0" '+(R.autoRaid?'':'selected')+'>Off</option></select></label>'+
+        '<label>Joins <input type="number" min="1" data-r="joins" value="'+R.joins+'" style="width:70px"></label>'+
+        '<label>Within seconds <input type="number" min="1" data-r="seconds" value="'+R.seconds+'" style="width:80px"></label></div>')+
+    '</div></div>'+
+    '<div class="card"><header>Join gate</header><div class="body">'+
+      '<label class="f" style="max-width:280px"><span>Minimum Discord account age (days, 0 = off)</span>'+
+      '<input type="number" min="0" max="365" id="jg" value="'+R.joingate+'"></label>'+
+      '<p class="hint" style="margin:0">Accounts younger than this are held until verified.</p>'+
+    '</div></div>'+
+    '<div class="card"><header>Ban evasion check</header><div class="body">'+
+      box(R.evasion.on,'Evasion check','On join the bot resolves the Roblox account through RoWifi. If a banned account used it, it acts on the new account.',
+        '<div class="modctl"><label>When matched <select data-e="action">'+
+        [['flag','Flag only'],['kick','Kick'],['ban','Ban']].map(o=>'<option value="'+o[0]+'" '+(R.evasion.action===o[0]?'selected':'')+'>'+o[1]+'</option>').join('')+
+        '</select></label></div>')+
+      '<p class="hint" style="margin:10px 0 0">Members not verified with RoWifi cannot be checked.</p>'+
+    '</div></div>'+
+    '<div class="card"><header>Anti-nuke</header><div class="body">'+
+      box(R.antinuke,'Anti-nuke','Watches mass channel, role and ban deletions by non-owners and reverts or halts the actor.','')+
+    '</div></div>'+
+    '<div class="card"><header>Join checks</header><div class="body">'+
+      '<p class="hint" style="margin:0 0 10px">Each new member is checked. A trip creates a join flag.</p>'+
+      '<div class="chk">'+
+        [['noAvatar','Default profile picture'],['similar','Name close to a banned member'],['sameInvite','Same invite as a banned member'],['priorCases','Earlier cases on record'],['roblox','Roblox account also used by a banned member']]
+          .map(c=>'<label><input type="checkbox" data-c="'+c[0]+'" '+(R.checks[c[0]]?'checked':'')+'> '+c[1]+'</label>').join('')+
+      '</div>'+
+      '<label class="f" style="max-width:260px;margin-top:14px"><span>Flag accounts younger than (days)</span>'+
+      '<input type="number" min="0" id="ad" value="'+R.ageDays+'"></label>'+
+      '<button class="btn" id="save">Save Raid Settings</button>'+
+    '</div></div>';
+
+  $$('[data-t]').forEach(b=>b.onclick=()=>{
+    const k=b.dataset.t;
+    if(k==='Freeze') store.settings.freeze=!store.settings.freeze;
+    else if(k==='Raid mode') R.raidmode=!R.raidmode;
+    else if(k==='Evasion check') R.evasion.on=!R.evasion.on;
+    else if(k==='Anti-nuke') R.antinuke=!R.antinuke;
+    b.classList.toggle('on');
+    b.closest('.modrow').classList.toggle('off');
+    audit('raid',k,'toggled'); persist();
+  });
+  $$('[data-r]').forEach(s=>s.onchange=()=>{
+    R[s.dataset.r] = s.type==='number'||s.tagName==='SELECT'&&s.dataset.r!=='autoRaid' ? Number(s.value) : s.value;
+    if(s.dataset.r==='autoRaid') R.autoRaid = s.value==='1';
+  });
+  $$('[data-e]').forEach(s=>s.onchange=()=>{ R.evasion.action=s.value; });
+  $$('[data-c]').forEach(c=>c.onchange=()=>{ R.checks[c.dataset.c]=c.checked; });
+  $('#save').onclick = ()=>{
+    R.joingate = Number($('#jg').value); R.ageDays = Number($('#ad').value);
+    audit('raid','save','posture'); persist(); toast('Raid settings saved.');
+  };
+  $('#panic').onclick = ()=>{
+    R.raidmode = true; store.settings.freeze = true; store.settings.lockdown = true;
+    store.locks.unshift({id:uid(), scope:'Full lockdown', channel:'server', reason:'Panic button', by:'admin', ts:now(), active:'yes', until:'manual'});
+    audit('raid','panic','lockdown'); persist(); route(); toast('Lockdown engaged.');
+  };
+};
+
+/* ---------------- messages (channel reader) ---------------- */
+P.comms = ()=>{
+  const ch = store._ch || '#general';
+  const msgs = store.feed.filter(f=>f.channel===ch).slice(-40);
+  $('#view').innerHTML =
+    '<div class="page-h"><h1>Messages</h1><p>Read a channel and send as the bot.</p>'+
+    '<span class="spacer"></span><select id="chSel" style="width:200px">'+
+      CHANNELS.map(c=>'<option '+(c===ch?'selected':'')+'>'+c+'</option>').join('')+'</select></div>'+
+    '<div class="card"><header>'+esc(ch)+'<span class="spacer"></span><span class="muted" style="font-size:11px;letter-spacing:0">last 40</span></header>'+
+      '<div class="body" style="padding:0"><div class="feed">'+
+      (msgs.length ? msgs.map(m=>'<div class="msg"><div class="av">'+esc(m.author.slice(0,2).toUpperCase())+'</div>'+
+        '<div><span class="au">'+esc(m.author)+'</span><span class="ti">'+fmt(m.ts)+'</span><div class="tx">'+esc(m.text)+'</div></div></div>').join('')
+        : '<div class="empty">No messages cached for this channel.</div>')+
+      '</div></div></div>'+
+    '<div class="card"><header>Send as bot</header><div class="body">'+
+      '<label class="f"><span>Message</span><textarea id="body" style="min-height:110px"></textarea></label>'+
+      '<div class="row"><button class="btn" id="send">Send</button>'+
+      '<button class="btn ghost" id="tpl">Insert template</button>'+
+      '<button class="btn ghost" id="embed">Send as embed</button></div>'+
+    '</div></div>';
+
+  $('#chSel').onchange = e=>{ store._ch = e.target.value; route(); };
+  $('#send').onclick = ()=>{
+    const t = $('#body').value.trim(); if(!t) return toast('Nothing to send.');
+    store.feed.push({channel:ch, author:'STRIKER', text:t, ts:now()});
+    audit('message','send',ch); persist(); route(); toast('Sent to '+ch+'.');
+  };
+  $('#embed').onclick = ()=>{
+    const t = $('#body').value.trim(); if(!t) return toast('Nothing to send.');
+    store.feed.push({channel:ch, author:'STRIKER', text:'[embed] '+t, ts:now()});
+    audit('message','embed',ch); persist(); route(); toast('Embed sent to '+ch+'.');
+  };
+  $('#tpl').onclick = ()=>{
+    if(!store.templates.length) return toast('No templates.');
+    const m = modal('Insert Template',
+      '<label class="f"><span>Template</span><select name="t">'+store.templates.map(t=>'<option value="'+t.id+'">'+esc(t.name)+'</option>').join('')+'</select></label>',
+      '<button class="btn ghost" data-close>Cancel</button><button class="btn" id="ins">Insert</button>');
+    m.querySelector('#ins').onclick = ()=>{
+      const t = store.templates.filter(x=>x.id===m.querySelector('[name="t"]').value)[0];
+      $('#body').value = t.body; closeModal();
+    };
+  };
+};
+
+/* ---------------- tickets ---------------- */
+P.tickets = ()=>{
+  $('#view').innerHTML =
+    '<div class="page-h"><h1>Tickets</h1><p>Member-initiated requests. Replies append to the thread.</p>'+
+    '<span class="spacer"></span><button class="btn gold" id="newT">+ New Ticket</button></div>'+
+    '<div class="card"><header>Tickets — '+store.tickets.length+' total</header><div class="body" style="padding:0">'+
+    table([
+      {label:'#', fmt:r=>'<span class="mono">'+esc(r.id.toUpperCase())+'</span>'},
+      {label:'Subject', k:'subject'},{label:'Opened by', k:'opener'},
+      {label:'Priority', fmt:r=>'<span class="tag '+(r.priority==='High'?'bad':r.priority==='Low'?'mute':'warn')+'">'+esc(r.priority)+'</span>'},
+      {label:'Status', fmt:r=>'<span class="tag '+(r.status==='open'?'warn':'ok')+'">'+esc(r.status)+'</span>'},
+      {label:'Opened', fmt:r=>fmt(r.ts)},
+      {label:'', cls:'actions', fmt:r=>'<button class="btn ghost sm" data-t="'+r.id+'">Open</button>'}
+    ], store.tickets, 'No tickets.')+'</div></div>';
+
+  $('#newT').onclick = ()=>{
+    const m = modal('New Ticket',
+      '<label class="f"><span>Subject</span><input name="subject"></label>'+
+      '<label class="f"><span>Opened by</span><select name="opener">'+store.members.map(x=>'<option>'+esc(x.name)+'</option>').join('')+'</select></label>'+
+      '<label class="f"><span>Priority</span><select name="priority"><option>Low</option><option selected>Normal</option><option>High</option></select></label>'+
+      '<label class="f"><span>Body</span><textarea name="body"></textarea></label>',
+      '<button class="btn ghost" data-close>Cancel</button><button class="btn" id="sv">Open Ticket</button>');
+    m.querySelector('#sv').onclick = ()=>{
+      const g = n => m.querySelector('[name="'+n+'"]').value.trim();
+      const t = {id:uid(), subject:g('subject')||'Untitled', opener:g('opener'), status:'open', priority:g('priority'), ts:now(),
+        thread:[{by:g('opener'), ts:now(), text:g('body')}]};
+      store.tickets.unshift(t); audit('ticket','open',t.subject); persist(); closeModal(); route();
+    };
+  };
+  $$('#view [data-t]').forEach(b=>b.onclick=()=>{
+    const t = store.tickets.filter(x=>x.id===b.dataset.t)[0];
+    const m = modal('Ticket — '+t.subject,
+      '<p class="hint">Opened by <b>'+esc(t.opener)+'</b> on '+fmt(t.ts)+' &middot; priority '+esc(t.priority)+'</p>'+
+      '<div style="border:1px solid var(--line);max-height:280px;overflow:auto;padding:10px;background:#fbfcfe">'+
+      t.thread.map(x=>'<div style="margin-bottom:10px"><b>'+esc(x.by)+'</b> <span class="muted">'+fmt(x.ts)+'</span><div>'+esc(x.text)+'</div></div>').join('')+'</div>'+
+      '<label class="f" style="margin-top:12px"><span>Reply as admin</span><textarea name="reply"></textarea></label>'+
+      '<label class="f"><span>Status</span><select name="status">'+['open','pending','closed'].map(s=>'<option '+(s===t.status?'selected':'')+'>'+s+'</option>').join('')+'</select></label>',
+      '<button class="btn ghost" data-close>Close</button><button class="btn danger" id="dl">Delete</button><button class="btn" id="rp">Post Reply</button>');
+    m.querySelector('#rp').onclick = ()=>{
+      const txt = m.querySelector('[name="reply"]').value.trim();
+      if(txt) t.thread.push({by:'admin', ts:now(), text:txt});
+      t.status = m.querySelector('[name="status"]').value;
+      audit('ticket','reply',t.subject); persist(); closeModal(); route(); toast('Ticket updated.');
+    };
+    m.querySelector('#dl').onclick = ()=>{
+      store.tickets = store.tickets.filter(x=>x.id!==t.id); audit('ticket','delete',t.subject); persist(); closeModal(); route();
+    };
+  });
+};
+
+/* ---------------- audit ---------------- */
+P.audit = ()=>{
+  $('#view').innerHTML =
+    '<div class="page-h"><h1>Audit Log</h1><p>Every mutation in this panel, newest first.</p>'+
+    '<span class="spacer"></span><button class="btn ghost" id="csv">Export CSV</button><button class="btn danger" id="clr">Clear</button></div>'+
+    '<div class="card"><div class="body" style="padding:0">'+table([
+      {label:'When', fmt:r=>fmt(r.ts)},{label:'Actor', k:'actor'},
+      {label:'Action', fmt:r=>'<span class="tag info">'+esc(r.action)+'</span>'},
+      {label:'Target', k:'target'},{label:'Detail', k:'detail'}
+    ], store.audit, 'Nothing logged yet.')+'</div></div>';
+  $('#csv').onclick = ()=>download('audit.csv','text/csv','when,actor,action,target,detail\n'+
+    store.audit.map(r=>[fmt(r.ts),r.actor,r.action,r.target,r.detail].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n'));
+  $('#clr').onclick = ()=>{ if(confirm('Clear the audit log?')){ store.audit=[]; persist(); route(); } };
+};
+
+/* ---------------- documents ---------------- */
+P.docs = ()=>{
+  $('#view').innerHTML =
+    '<div class="page-h"><h1>Documents</h1><p>Regulations, SOPs and letters. Export, PIN-protect, or issue a share link.</p>'+
+    '<span class="spacer"></span><button class="btn gold" id="newD">+ New Document</button></div>'+
+    '<div class="card"><header>Document register</header><div class="body" style="padding:0">'+
+    table([
+      {label:'Title', fmt:r=>'<b>'+esc(r.title)+'</b> '+(r.enc?'<span class="tag warn">PIN</span>':'')},
+      {label:'Updated', fmt:r=>fmt(r.updated)},
+      {label:'', cls:'actions', fmt:r=>'<button class="btn ghost sm" data-o="'+r.id+'">Open</button> <button class="btn ghost sm" data-s="'+r.id+'">Share</button> <button class="btn danger sm" data-d="'+r.id+'">Del</button>'}
+    ], store.documents, 'No documents.')+'</div></div>';
+
+  $('#newD').onclick = ()=>{
+    const d = {id:uid(), title:'Untitled Document', body:'<h1>Untitled Document</h1><p></p>', pin:'', share:'', enc:false, updated:now()};
+    store.documents.unshift(d); persist(); location.hash='#/docs/'+d.id;
+  };
+  $$('#view [data-o]').forEach(b=>b.onclick=()=>location.hash='#/docs/'+b.dataset.o);
+  $$('#view [data-s]').forEach(b=>b.onclick=()=>{
+    const d = store.documents.filter(x=>x.id===b.dataset.s)[0];
+    if(!d.share) d.share = uid()+uid();
+    persist();
+    const url = location.origin+location.pathname+'#/share/'+d.share;
+    if(navigator.clipboard) navigator.clipboard.writeText(url).then(()=>toast('Share link copied.'),()=>prompt('Share link',url));
+    else prompt('Share link',url);
+  });
+  $$('#view [data-d]').forEach(b=>b.onclick=()=>{
+    if(!confirm('Delete document?')) return;
+    store.documents = store.documents.filter(x=>x.id!==b.dataset.d); audit('document','delete',''); persist(); route();
+  });
+};
+
+P.docEditor = (id)=>{
+  const d = store.documents.filter(x=>x.id===id)[0];
+  if(!d) return P.docs();
+  if(d.enc){
+    const p = prompt('Document is PIN protected. Enter PIN:');
+    if(p){ const b = unxor(d.body,p); if(b.indexOf('<')>-1) d.body = b; }
+  }
+  $('#view').innerHTML =
+    '<div class="page-h"><h1>'+esc(d.title)+'</h1><p>Updated '+fmt(d.updated)+'</p>'+
+    '<span class="spacer"></span><button class="btn ghost" id="back">← Register</button></div>'+
+    '<div class="card"><header>Editor<span class="spacer"></span><span class="muted" style="font-size:11px;letter-spacing:0">autosaves</span></header>'+
+      '<div class="body" style="padding:0"><div class="toolbar">'+
+        '<button data-cmd="bold"><b>B</b></button><button data-cmd="italic"><i>I</i></button><button data-cmd="underline"><u>U</u></button>'+
+        '<button data-cmd="insertUnorderedList">• List</button><button data-cmd="insertOrderedList">1. List</button>'+
+        '<button data-block="h1">H1</button><button data-block="h2">H2</button><button data-block="p">P</button>'+
+        '<button id="clr">Clear</button></div>'+
+      '<div id="docEdit" contenteditable="true">'+d.body+'</div></div></div>'+
+    '<div class="grid2">'+
+      '<div class="card"><header>Export</header><div class="body row">'+
+        ['pdf','doc','docx','odt','rtf','txt'].map(x=>'<button class="btn ghost" data-x="'+x+'">'+x.toUpperCase()+'</button>').join('')+
+      '</div></div>'+
+      '<div class="card"><header>Protection &amp; share</header><div class="body">'+
+        '<label class="f"><span>PIN (blank removes it)</span><input id="pin" value="'+esc(d.pin||'')+'" maxlength="12"></label>'+
+        '<div class="row"><button class="btn" id="saveBtn">Save &amp; apply PIN</button><button class="btn gold" id="shareBtn">Copy share link</button></div>'+
+        '<p class="hint" style="margin-top:10px">PIN uses XOR+Base64 obfuscation — adequate internally, not cryptographic.</p>'+
+      '</div></div></div>';
+
+  const ed = $('#docEdit');
+  $$('.toolbar [data-cmd]').forEach(b=>b.onmousedown=e=>{ e.preventDefault(); document.execCommand(b.dataset.cmd); });
+  $$('.toolbar [data-block]').forEach(b=>b.onmousedown=e=>{ e.preventDefault(); document.execCommand('formatBlock',false,b.dataset.block); });
+  $('#clr').onmousedown = e=>{ e.preventDefault(); ed.innerHTML=''; };
+  $('#back').onclick = ()=>location.hash='#/docs';
+
+  const commit = ()=>{
+    d.title = ((ed.querySelector('h1')||{}).textContent || d.title).slice(0,90);
+    d.body = ed.innerHTML; d.updated = now(); persist();
+  };
+  ed.addEventListener('input', ()=>{ clearTimeout(ed._t); ed._t = setTimeout(commit, 700); });
+
+  $('#saveBtn').onclick = ()=>{
+    const p = $('#pin').value.trim();
+    commit();
+    if(p){ d.pin = p; d.body = xor(d.body, p); d.enc = true; }
+    else { if(d.enc) d.body = xor(d.body, d.pin); d.pin=''; d.enc=false; }
+    persist(); audit('document','save',d.title); route(); toast('Document saved.');
+  };
+  $('#shareBtn').onclick = ()=>{
+    if(!d.share) d.share = uid()+uid();
+    persist();
+    const url = location.origin+location.pathname+'#/share/'+d.share;
+    if(navigator.clipboard) navigator.clipboard.writeText(url).then(()=>toast('Share link copied.'),()=>prompt('Share link',url));
+    else prompt('Share link',url);
+  };
+  $$('#view [data-x]').forEach(b=>b.onclick=()=>{
+    const html = ed.innerHTML, plain = ed.innerText, t = d.title.replace(/[^\w\-]+/g,'_');
+    const full = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>'+esc(d.title)+'</title></head><body>'+html+'</body></html>';
+    const x = b.dataset.x;
+    if(x==='pdf'){ const w=window.open('','_blank'); w.document.write(full); w.document.close(); w.print(); }
+    else if(x==='doc') download(t+'.doc','application/msword',full);
+    else if(x==='docx') download(t+'.docx','application/vnd.openxmlformats-officedocument.wordprocessingml.document',full);
+    else if(x==='odt') download(t+'.fodt','application/vnd.oasis.opendocument.text',
+      '<?xml version="1.0" encoding="UTF-8"?><office:document xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" office:mimetype="application/vnd.oasis.opendocument.text"><office:body><office:text><text:p>'+esc(plain)+'</text:p></office:text></office:body></office:document>');
+    else if(x==='rtf') download(t+'.rtf','application/rtf','{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Times New Roman;}}\\f0\\fs24 '+plain.replace(/\n/g,'\\par ')+'}');
+    else download(t+'.txt','text/plain',plain);
+    audit('document','export',t+'.'+x);
+  });
+};
+
+function xor(str,key){
+  let out='';
+  for(let i=0;i<str.length;i++) out += String.fromCharCode(str.charCodeAt(i) ^ key.charCodeAt(i%key.length));
+  return btoa(unescape(encodeURIComponent(out)));
+}
+function unxor(b64,key){
+  const str = decodeURIComponent(escape(atob(b64)));
+  let out='';
+  for(let i=0;i<str.length;i++) out += String.fromCharCode(str.charCodeAt(i) ^ key.charCodeAt(i%key.length));
+  return out;
+}
+
+P.share = (token)=>{
+  const d = store.documents.filter(x=>x.share===token)[0];
+  if(!d){ $('#view').innerHTML = '<div class="page-h"><h1>Share link</h1></div><div class="card"><div class="body">Link expired or not found.</div></div>'; return; }
+  let body = d.body;
+  if(d.enc){
+    const p = prompt('This document is PIN protected. Enter PIN:');
+    body = p ? unxor(d.body,p) : '<p><i>Incorrect or missing PIN.</i></p>';
+  }
+  $('#view').innerHTML =
+    '<div class="page-h"><h1>'+esc(d.title)+'</h1><p>Shared document &middot; read only &middot; updated '+fmt(d.updated)+'</p>'+
+    '<span class="spacer"></span><button class="btn ghost" id="pr">Print</button></div>'+
+    '<div class="card"><div class="body" style="padding:26px">'+body+'</div></div>';
+  $('#pr').onclick = ()=>window.print();
+};
+
+/* ---------------- awards ---------------- */
+P.awards = ()=>{
+  const rows = store.awards;
+  $('#view').innerHTML =
+    '<div class="page-h"><h1>Awards</h1><p>Decoration catalog. Rack order is the order listed.</p>'+
+    '<span class="spacer"></span><button class="btn gold" id="newA">+ New Decoration</button></div>'+
+    '<div class="card"><header>Catalog</header><div class="body">'+
+    (rows.length ? rows.map(a=>'<div style="display:flex;gap:14px;align-items:center;padding:10px 0;border-bottom:1px solid #eef1f6">'+
+      '<div class="ribbon" style="width:86px;background:linear-gradient(90deg,'+esc(a.ribbon)+')"></div>'+
+      '<div style="flex:1"><b>'+esc(a.name)+'</b><div class="muted" style="font-size:12.5px">'+esc(a.criteria)+'</div></div>'+
+      '<button class="btn ghost sm" data-e="'+a.id+'">Edit</button><button class="btn danger sm" data-d="'+a.id+'">Del</button></div>').join('')
+      : '<div class="empty">No decorations registered.</div>')+
+    '</div></div>'+
+    '<div class="card"><header>Sample rack</header><div class="body"><div style="display:flex;gap:3px;flex-wrap:wrap">'+
+    rows.map(a=>'<div class="ribbon" style="width:56px;background:linear-gradient(90deg,'+esc(a.ribbon)+')" title="'+esc(a.name)+'"></div>').join('')+
+    '</div></div></div>';
+
+  const edit = a=>{
+    const m = modal(a?'Edit Decoration':'New Decoration',
+      '<label class="f"><span>Name</span><input name="name" value="'+esc(a?a.name:'')+'"></label>'+
+      '<label class="f"><span>Ribbon gradient (comma colours)</span><input name="ribbon" value="'+esc(a?a.ribbon:'#00308F,#FFC72C,#00308F')+'"></label>'+
+      '<label class="f"><span>Criteria</span><textarea name="criteria">'+esc(a?a.criteria:'')+'</textarea></label>',
+      '<button class="btn ghost" data-close>Cancel</button><button class="btn" id="sv">Save</button>');
+    m.querySelector('#sv').onclick = ()=>{
+      const o = {name:m.querySelector('[name="name"]').value.trim(), ribbon:m.querySelector('[name="ribbon"]').value.trim(), criteria:m.querySelector('[name="criteria"]').value.trim()};
+      if(a) Object.assign(a,o); else store.awards.unshift(Object.assign({id:uid()},o));
+      audit('award',a?'update':'create',o.name); persist(); closeModal(); route();
+    };
+  };
+  $('#newA').onclick = ()=>edit(null);
+  $$('#view [data-e]').forEach(b=>b.onclick=()=>edit(store.awards.filter(x=>x.id===b.dataset.e)[0]));
+  $$('#view [data-d]').forEach(b=>b.onclick=()=>{ store.awards = rows.filter(x=>x.id!==b.dataset.d); audit('award','delete',''); persist(); route(); });
+};
+
+/* ---------------- locks ---------------- */
+P.locks = crud({
+  key:'locks', title:'Channel Locks', sub:'Channel locks and full lockdowns with the reason and release time on record.',
+  stamp:()=>({ts:now(), by:'admin', active:'yes', until:'manual'}),
+  cols:[
+    {label:'Scope', fmt:r=>'<span class="tag info">'+esc(r.scope)+'</span>'},
+    {label:'Target', fmt:r=>'<span class="mono">'+esc(r.channel)+'</span>'},
+    {label:'Reason', k:'reason'},{label:'By', k:'by'},{label:'Until', k:'until'},
+    {label:'When', fmt:r=>fmt(r.ts)},
+    {label:'Active', fmt:r=>'<span class="tag '+(r.active==='yes'?'bad':'mute')+'">'+esc(r.active)+'</span>'}
+  ],
+  fields:[
+    {k:'scope', label:'Scope', type:'select', opts:['Channel','Category','Server freeze','Full lockdown']},
+    {k:'channel', label:'Target'},{k:'reason', label:'Reason'},
+    {k:'until', label:'Until (30m, 2h, inf)'},
+    {k:'active', label:'Still active', type:'select', opts:['yes','no']}
+  ]
+});
+
+/* ---------------- scheduled & info ---------------- */
+P.sched = crud({
+  key:'messages', title:'Scheduled and Info Messages', sub:'Cron-driven posts and standing info blocks.',
+  stamp:()=>({ts:now(), last:null}),
+  cols:[
+    {label:'Kind', fmt:r=>'<span class="tag '+(r.kind==='Scheduled'?'info':'mute')+'">'+esc(r.kind)+'</span>'},
+    {label:'Channel', fmt:r=>'<span class="mono">'+esc(r.channel)+'</span>'},
+    {label:'Cron', fmt:r=>'<span class="mono">'+esc(r.cron)+'</span>'},
+    {label:'Body', fmt:r=>'<span class="muted">'+esc(r.body.slice(0,70))+'</span>'},
+    {label:'Last run', fmt:r=>r.last?fmt(r.last):'—'}
+  ],
+  fields:[
+    {k:'kind', label:'Kind', type:'select', opts:['Scheduled','Info']},
+    {k:'channel', label:'Channel', type:'select', opts:CHANNELS},
+    {k:'cron', label:'Cron (5-field)'},{k:'body', label:'Body', type:'textarea'}
+  ]
+});
+
+/* ---------------- kill log ---------------- */
+P.kills = crud({
+  key:'killLog', title:'Kill Log', sub:'Engagement credit reported by the game.',
+  stamp:()=>({ts:now()}),
+  cols:[
+    {label:'When', fmt:r=>fmt(r.ts)},{label:'Unit', k:'unit'},{label:'Target', k:'target'},
+    {label:'Weapon', k:'weapon'},{label:'Result', fmt:r=>'<span class="tag ok">'+esc(r.result)+'</span>'}
+  ],
+  fields:[
+    {k:'unit', label:'Unit'},{k:'target', label:'Target'},{k:'weapon', label:'Weapon'},
+    {k:'result', label:'Result', type:'select', opts:['Credit','Partial','No credit']}
+  ]
+});
+
+/* ---------------- channels and backups ---------------- */
+P.tools = ()=>{
+  $('#view').innerHTML =
+    '<div class="page-h"><h1>Channels and Backups</h1><p>Purge, slowmode, lock, rename, retopic, create, delete, announce, back up and restore.</p></div>'+
+    '<div class="card"><header>Manage a channel</header><div class="body">'+
+      '<div class="row">'+
+        '<label class="f" style="flex:0 0 220px"><span>Channel</span><select id="tc">'+CHANNELS.map(c=>'<option>'+c+'</option>').join('')+'</select></label>'+
+        '<label class="f" style="flex:1 1 260px"><span>Value (amount, seconds, name, topic, or lock time)</span><input id="tv" placeholder="e.g. 50 / 30 / ops-east / inf"></label>'+
+      '</div>'+
+      '<div class="row">'+
+        ['purge','slowmode','lock','unlock','rename','topic','create','delete'].map(b=>
+          '<button class="btn '+(b==='delete'?'danger':'ghost')+'" data-b="'+b+'" style="flex:0 0 auto">'+b.charAt(0).toUpperCase()+b.slice(1)+'</button>').join('')+
+      '</div>'+
+      '<div id="toolOut"></div>'+
+    '</div></div>'+
+    '<div class="card"><header>Announcement</header><div class="body">'+
+      '<label class="f"><span>Channel</span><select id="ac">'+CHANNELS.map(c=>'<option>'+c+'</option>').join('')+'</select></label>'+
+      '<label class="f"><span>Title</span><input id="atl" placeholder="Notice heading"></label>'+
+      '<label class="f"><span>Message</span><textarea id="ads" placeholder="Body"></textarea></label>'+
+      '<button class="btn gold" id="sendAnn">Send announcement</button>'+
+    '</div></div>'+
+    '<div class="card"><header>Backups<span class="spacer"></span><button class="btn ghost sm" id="mkBackup">+ Create backup</button></header>'+
+      '<div class="body" style="padding:0">'+
+      table([
+        {label:'Name', fmt:r=>'<b>'+esc(r.name)+'</b>'},
+        {label:'Created', fmt:r=>fmt(r.ts)},
+        {label:'Channels', k:'channels'},{label:'Roles', k:'roles'},
+        {label:'', cls:'actions', fmt:r=>'<button class="btn ghost sm" data-r="'+r.id+'">Restore</button> <button class="btn danger sm" data-bd="'+r.id+'">Del</button>'}
+      ], store.backups, 'No backups yet.')+'</div></div>';
+
+  $$('#view [data-b]').forEach(b=>b.onclick=()=>{
+    const ch = $('#tc').value, v = $('#tv').value.trim(), act = b.dataset.b;
+    if(['purge','slowmode','rename','topic'].indexOf(act)>-1 && !v) return toast('Enter a value first.');
+    store.feed.push({channel:ch, author:'STRIKER', text:'['+act+'] '+(v||ch), ts:now()});
+    audit('channel',act,ch+(v?' — '+v:''));
+    $('#toolOut').innerHTML = '<p class="hint" style="margin-top:12px"><b>'+act+'</b> applied to '+esc(ch)+(v?' with value '+esc(v):'')+'.</p>';
+    persist(); toast(act+' — '+ch);
+  });
+  $('#sendAnn').onclick = ()=>{
+    const ch = $('#ac').value, t = $('#atl').value.trim(), b = $('#ads').value.trim();
+    if(!b) return toast('Message body required.');
+    store.feed.push({channel:ch, author:'STRIKER', text:'[announcement] '+(t?t+' — ':'')+b, ts:now()});
+    audit('announce','send',ch); persist(); toast('Announcement sent to '+ch+'.');
+    $('#atl').value=''; $('#ads').value='';
+  };
+  $('#mkBackup').onclick = ()=>{
+    const n = prompt('Backup name','Backup '+new Date().toLocaleString());
+    if(n===null) return;
+    store.backups.unshift({id:uid(), name:n||'Backup', ts:now(), channels:CHANNELS.length, roles:ROLES.length});
+    audit('backup','create',n||''); persist(); route();
+  };
+  $$('#view [data-r]').forEach(b=>b.onclick=()=>{
+    const bk = store.backups.filter(x=>x.id===b.dataset.r)[0];
+    if(!confirm('Restore "'+bk.name+'"? Current channel and role layout is replaced.')) return;
+    audit('backup','restore',bk.name); toast('Restored from '+bk.name+'.');
+  });
+  $$('#view [data-bd]').forEach(b=>b.onclick=()=>{
+    store.backups = store.backups.filter(x=>x.id!==b.dataset.bd); persist(); route();
+  });
+};
+
+/* ---------------- servers ---------------- */
+P.srv = crud({
+  key:'servers', title:'Servers', sub:'Guilds this bot instance is installed in.',
+  cols:[
+    {label:'Server', fmt:r=>'<b>'+esc(r.name)+'</b>'},
+    {label:'Guild ID', fmt:r=>'<span class="mono">'+esc(r.guild)+'</span>'},
+    {label:'Members', k:'members'},
+    {label:'Status', fmt:r=>'<span class="tag '+(r.status==='Linked'?'ok':'warn')+'">'+esc(r.status)+'</span>'}
+  ],
+  fields:[
+    {k:'name', label:'Server name'},{k:'guild', label:'Guild ID'},
+    {k:'members', label:'Member count'},{k:'status', label:'Status', type:'select', opts:['Linked','Pending','Suspended']}
+  ]
+});
+
+/* ---------------- commands ---------------- */
+P.cmds = ()=>{
+  const cats = ['All'].concat(store.commands.map(c=>c.cat).filter((v,i,a)=>a.indexOf(v)===i).sort());
+  const cat = store._cat || 'All';
+  const q = (store._cq || '').toLowerCase();
+  const rows = store.commands.filter(c=>(cat==='All'||c.cat===cat) && (!q || c.name.indexOf(q)>-1));
+  const LV = [['0','Everyone'],['1','Verified'],['2','Staff'],['3','Admin'],['4','Owner']];
+
+  $('#view').innerHTML =
+    '<div class="page-h"><h1>Commands</h1><p>Turn commands on or off and set the permission level each one needs.</p>'+
+    '<span class="spacer"></span><button class="btn ghost" id="disAll">Disable all</button><button class="btn ghost" id="enAll">Enable all</button></div>'+
+    '<div class="card"><header>Filter</header><div class="body"><div class="row">'+
+      '<label class="f" style="flex:0 0 220px"><span>Category</span><select id="cf">'+cats.map(c=>'<option '+(c===cat?'selected':'')+'>'+esc(c)+'</option>').join('')+'</select></label>'+
+      '<label class="f" style="flex:1 1 260px"><span>Search</span><input id="cq" value="'+esc(store._cq||'')+'" placeholder="Command name"></label>'+
+    '</div></div></div>'+
+    '<div class="card"><header>'+esc(cat==='All'?'All commands':cat)+' — '+rows.length+'</header><div class="body" style="padding:0">'+
+    (rows.length ? rows.map(c=>'<div class="cmdrow '+(c.enabled?'':'off')+'">'+
+      '<div><div class="nm">/'+esc(c.name)+'</div><div class="us">'+esc(c.usage||'—')+'</div><div class="muted" style="font-size:11px">'+esc(c.cat)+'</div></div>'+
+      '<select data-l="'+c.id+'">'+LV.map(l=>'<option value="'+l[0]+'" '+(l[0]===c.level?'selected':'')+'>'+l[1]+'</option>').join('')+'</select>'+
+      '<button class="sw '+(c.enabled?'on':'')+'" data-en="'+c.id+'"></button></div>').join('')
+      : '<div class="empty">No commands match.</div>')+
+    '</div></div>';
+
+  $('#cf').onchange = e=>{ store._cat=e.target.value; route(); };
+  $('#cq').oninput = e=>{ store._cq=e.target.value; clearTimeout(store._qt); store._qt=setTimeout(route,220); };
+  $$('[data-en]').forEach(b=>b.onclick=()=>{
+    const c = store.commands.filter(x=>x.id===b.dataset.en)[0];
+    c.enabled=!c.enabled; b.classList.toggle('on',c.enabled);
+    b.closest('.cmdrow').classList.toggle('off',!c.enabled);
+    audit('command',c.enabled?'enable':'disable',c.name); persist();
+  });
+  $$('[data-l]').forEach(s=>s.onchange=()=>{
+    const c = store.commands.filter(x=>x.id===s.dataset.l)[0];
+    c.level = s.value; audit('command','level',c.name+' → '+s.value); persist();
+  });
+  $('#disAll').onclick = ()=>{ rows.forEach(c=>c.enabled=false); audit('command','disable-all',''); persist(); route(); };
+  $('#enAll').onclick = ()=>{ rows.forEach(c=>c.enabled=true); audit('command','enable-all',''); persist(); route(); };
+};
+
+/* ---------------- message templates ---------------- */
+P.tpl = ()=>{
+  $('#view').innerHTML =
+    '<div class="page-h"><h1>Message Templates</h1><p>Canned posts with {member}, {reason}, {case} placeholders.</p>'+
+    '<span class="spacer"></span><button class="btn gold" id="newT">+ New Template</button></div>'+
+    '<div class="card"><header>Templates</header><div class="body" style="padding:0">'+
+    table([
+      {label:'Name', fmt:r=>'<b>'+esc(r.name)+'</b>'},
+      {label:'Body', fmt:r=>'<span class="muted mono">'+esc(r.body)+'</span>'},
+      {label:'', cls:'actions', fmt:r=>'<button class="btn ghost sm" data-c="'+r.id+'">Copy</button> <button class="btn ghost sm" data-e="'+r.id+'">Edit</button> <button class="btn danger sm" data-d="'+r.id+'">Del</button>'}
+    ], store.templates, 'No templates.')+'</div></div>';
+
+  const edit = t=>{
+    const m = modal(t?'Edit Template':'New Template',
+      '<label class="f"><span>Name</span><input name="name" value="'+esc(t?t.name:'')+'"></label>'+
+      '<label class="f"><span>Body</span><textarea name="body" style="min-height:150px">'+esc(t?t.body:'')+'</textarea></label>',
+      '<button class="btn ghost" data-close>Cancel</button><button class="btn" id="sv">Save</button>');
+    m.querySelector('#sv').onclick = ()=>{
+      const o = {name:m.querySelector('[name="name"]').value.trim(), body:m.querySelector('[name="body"]').value.trim()};
+      if(t) Object.assign(t,o); else store.templates.unshift(Object.assign({id:uid()},o));
+      audit('template',t?'update':'create',o.name); persist(); closeModal(); route();
+    };
+  };
+  $('#newT').onclick = ()=>edit(null);
+  $$('#view [data-e]').forEach(b=>b.onclick=()=>edit(store.templates.filter(x=>x.id===b.dataset.e)[0]));
+  $$('#view [data-d]').forEach(b=>b.onclick=()=>{ store.templates = store.templates.filter(x=>x.id!==b.dataset.d); audit('template','delete',''); persist(); route(); });
+  $$('#view [data-c]').forEach(b=>b.onclick=()=>{
+    const t = store.templates.filter(x=>x.id===b.dataset.c)[0];
+    if(navigator.clipboard) navigator.clipboard.writeText(t.body).then(()=>toast('Template copied.'),()=>toast('Copy failed.'));
+  });
+};
+
+/* ---------------- appearance ---------------- */
+P.appear = ()=>{
+  const a = store.appearance;
+  const accents = [['#00308F','AF Blue'],['#0a4bbd','Bright Blue'],['#1c7a3e','Olive'],['#7a1f1f','Maroon'],['#101a2c','Graphite']];
+  $('#view').innerHTML =
+    '<div class="page-h"><h1>Appearance</h1><p>Accent, density, type scale and masthead. Applies immediately.</p>'+
+    '<span class="spacer"></span><button class="btn ghost" id="reset">Restore defaults</button></div>'+
+    '<div class="card"><header>Accent</header><div class="body">'+
+      '<div class="chk">'+accents.map(c=>'<label><input type="radio" name="acc" value="'+c[0]+'" '+(a.accent===c[0]?'checked':'')+'> '+
+        '<span style="display:inline-block;width:16px;height:16px;background:'+c[0]+';border:1px solid rgba(0,0,0,.3)"></span> '+c[1]+'</label>').join('')+
+      '</div>'+
+      '<label class="f" style="max-width:220px;margin-top:12px"><span>Custom accent</span><input type="color" id="custom" value="'+esc(a.accent)+'"></label>'+
+    '</div></div>'+
+    '<div class="card"><header>Layout</header><div class="body">'+
+      '<label class="f" style="max-width:260px"><span>Density</span><select id="den">'+
+        ['comfortable','compact'].map(d=>'<option '+(d===a.density?'selected':'')+'>'+d+'</option>').join('')+'</select></label>'+
+      '<label class="f" style="max-width:260px"><span>Base font size (px)</span><input type="number" id="fs" min="13" max="18" value="'+esc(a.fs)+'"></label>'+
+      '<div class="modrow"><div><h4>Government banner</h4><p>Show the official-website strip above the masthead.</p></div>'+
+        '<button class="sw '+(a.govbar?'on':'')+'" id="gv"></button></div>'+
+      '<div class="modrow"><div><h4>Masthead subtitle</h4><p>Show the location line under the command title.</p></div>'+
+        '<button class="sw '+(a.mastSub?'on':'')+'" id="ms"></button></div>'+
+    '</div></div>';
+
+  const apply = ()=>{
+    document.documentElement.style.setProperty('--blue', a.accent);
+    document.documentElement.style.setProperty('--blue-dk', a.accent);
+    document.documentElement.style.setProperty('--blue-lt', a.accent);
+    document.body.style.fontSize = a.fs+'px';
+    document.body.dataset.density = a.density;
+    $('#govbar').style.display = a.govbar ? '' : 'none';
+    $('#mastSub').style.display = a.mastSub ? '' : 'none';
+    persist();
+  };
+  $$('[name="acc"]').forEach(r=>r.onchange=()=>{ a.accent=r.value; apply(); route(); });
+  $('#custom').oninput = e=>{ a.accent=e.target.value; apply(); };
+  $('#den').onchange = e=>{ a.density=e.target.value; apply(); };
+  $('#fs').oninput = e=>{ a.fs=e.target.value; apply(); };
+  $('#gv').onclick = e=>{ a.govbar=!a.govbar; e.currentTarget.classList.toggle('on',a.govbar); apply(); };
+  $('#ms').onclick = e=>{ a.mastSub=!a.mastSub; e.currentTarget.classList.toggle('on',a.mastSub); apply(); };
+  $('#reset').onclick = ()=>{ store.appearance = seed().appearance; persist(); apply(); route(); toast('Defaults restored.'); };
+};
+
+/* ---------------- settings ---------------- */
+P.set = ()=>{
+  const s = store.settings;
+  $('#view').innerHTML =
+    '<div class="page-h"><h1>Settings</h1><p>Roles, channels, thresholds and retention.</p></div>'+
+    '<div class="card"><header>Roles and channels</header><div class="body"><div class="grid2">'+
+      '<label class="f"><span>Moderator role</span><select id="modRole">'+ROLES.map(r=>'<option '+(r===s.modRole?'selected':'')+'>'+esc(r)+'</option>').join('')+'</select></label>'+
+      '<label class="f"><span>Admin role</span><select id="admRole">'+ROLES.map(r=>'<option '+(r===s.admRole?'selected':'')+'>'+esc(r)+'</option>').join('')+'</select></label>'+
+      '<label class="f"><span>Log channel</span><select id="logCh">'+CHANNELS.map(c=>'<option '+(c===s.logCh?'selected':'')+'>'+esc(c)+'</option>').join('')+'</select></label>'+
+      '<label class="f"><span>Welcome channel</span><select id="welCh">'+CHANNELS.map(c=>'<option '+(c===s.welCh?'selected':'')+'>'+esc(c)+'</option>').join('')+'</select></label>'+
+    '</div></div></div>'+
+    '<div class="card"><header>Rules</header><div class="body"><div class="grid2">'+
+      '<label class="f"><span>Strike limit before action</span><select id="lim">'+['1','2','3','4','5'].map(n=>'<option '+(n===s.strikeLimit?'selected':'')+'>'+n+'</option>').join('')+'</select></label>'+
+      '<label class="f"><span>Log retention (days)</span><input id="ret" type="number" min="7" value="'+esc(s.retention)+'"></label>'+
+      '<label class="f"><span>Timezone</span><select id="tz">'+['America/Chicago','America/Denver','America/New_York','UTC'].map(t=>'<option '+(t===s.tz?'selected':'')+'>'+t+'</option>').join('')+'</select></label>'+
+      '<label class="f"><span>DM on action</span><select id="dm"><option value="1" '+(s.dmOnAction?'selected':'')+'>Yes</option><option value="0" '+(s.dmOnAction?'':'selected')+'>No</option></select></label>'+
+    '</div><button class="btn" id="sv">Save Settings</button></div></div>'+
+    '<div class="card"><header>Backend</header><div class="body">'+
+      '<label class="f"><span>Bot API base URL (blank = offline/local mode)</span><input id="api" value="'+esc(API.base)+'" placeholder="https://bot.example.mil"></label>'+
+      '<button class="btn ghost" id="svapi">Save Endpoint</button>'+
+      '<p class="hint" style="margin-top:10px">Endpoints: /rowifi/lookup, /cases, /locks, /messages. Offline mode keeps everything in localStorage.</p>'+
+    '</div></div>';
+  $('#sv').onclick = ()=>{
+    s.modRole=$('#modRole').value; s.admRole=$('#admRole').value; s.logCh=$('#logCh').value;
+    s.welCh=$('#welCh').value; s.strikeLimit=$('#lim').value; s.retention=$('#ret').value;
+    s.tz=$('#tz').value; s.dmOnAction = $('#dm').value==='1';
+    audit('settings','update','core'); persist(); toast('Settings saved.');
+  };
+  $('#svapi').onclick = ()=>{
+    API.base = $('#api').value.trim(); localStorage.setItem('afgsc-api', API.base);
+    audit('settings','api',API.base||'offline'); toast('Endpoint saved.');
+  };
+};
+
+/* ---------------- run code ---------------- */
+P.run = ()=>{
+  $('#view').innerHTML =
+    '<div class="page-h"><h1>Run Code</h1><p>Evaluate JavaScript as the bot, with the live <span class="mono">store</span> in scope.</p></div>'+
+    '<div class="card"><header>Source</header><div class="body" style="padding:0">'+
+      '<textarea id="codeIn">// store is live. return a value to print it.\nconst open = store.cases.filter(c => c.status === \'open\').length;\nreturn { openCases: open, roster: store.members.length };</textarea>'+
+    '</div></div>'+
+    '<div class="row" style="margin-bottom:14px"><button class="btn gold" id="runBtn">Run</button>'+
+    '<button class="btn ghost" id="clrBtn">Clear Console</button><button class="btn ghost" id="saveBtn">Save Snippet</button></div>'+
+    '<div class="card"><header>Console</header><div id="console" class="body" style="padding:0">ready.</div></div>';
+
+  const out = m => { $('#console').textContent += '\n'+m; };
+  $('#clrBtn').onclick = ()=>{ $('#console').textContent='cleared.'; };
+  $('#saveBtn').onclick = ()=>{
+    store.documents.unshift({id:uid(), title:'Snippet '+new Date().toLocaleTimeString(), body:'<h1>Snippet</h1><p>'+esc($('#codeIn').value)+'</p>', pin:'', share:'', enc:false, updated:now()});
+    persist(); toast('Saved to Documents.');
+  };
+  $('#runBtn').onclick = ()=>{
+    const code = $('#codeIn').value, log = console.log;
+    console.log = (...a)=>{ out(a.map(x=>typeof x==='object'?JSON.stringify(x,null,2):String(x)).join(' ')); log(...a); };
+    try{
+      const r = new Function('store','audit','persist','API', code)(store, audit, persist, API);
+      out('→ '+(r===undefined?'undefined':typeof r==='object'?JSON.stringify(r,null,2):String(r)));
+      audit('run-code','exec',code.slice(0,60));
+    }catch(e){ out('✖ '+e.name+': '+e.message); }
+    console.log = log;
+  };
+};
+
+/* ---------------- logins ---------------- */
+P.logins = ()=>{
+  $('#view').innerHTML =
+    '<div class="page-h"><h1>Login and Action Log</h1><p>Sign-in attempts plus the dashboard action trail.</p></div>'+
+    '<div class="card"><header>Sign-ins</header><div class="body" style="padding:0">'+
+    table([
+      {label:'When', fmt:r=>fmt(r.ts)},{label:'User', k:'user'},
+      {label:'Origin', fmt:r=>'<span class="mono">'+esc(r.ip)+'</span>'},
+      {label:'Result', fmt:r=>'<span class="tag '+(r.result==='ok'?'ok':'bad')+'">'+esc(r.result)+'</span>'}
+    ], store.logins, 'No sign-in attempts recorded.')+'</div></div>'+
+    '<div class="card"><header>Actions</header><div class="body" style="padding:0">'+
+    table([
+      {label:'When', fmt:r=>fmt(r.ts)},{label:'Actor', k:'actor'},
+      {label:'Action', fmt:r=>'<span class="tag info">'+esc(r.action)+'</span>'},{label:'Detail', k:'detail'}
+    ], store.audit.slice(0,60), 'Nothing logged.')+'</div></div>';
+};
+
+/* ---------------- bot identity ---------------- */
+P.id = ()=>{
+  const i = store.identity;
+  $('#view').innerHTML =
+    '<div class="page-h"><h1>Bot Identity</h1><p>Masthead values and insignia for this deployment.</p></div>'+
+    '<div class="card"><header>Insignia</header><div class="body"><div class="insignia-box">'+
+      '<img src="'+esc(i.insignia)+'" alt="Insignia">'+
+      '<div style="flex:1"><label class="f"><span>Insignia URL</span><input id="ins" value="'+esc(i.insignia)+'"></label>'+
+      '<p class="hint" style="margin:0">Institute of Heraldry artwork is public domain; commercial reuse needs proponent commander approval (AFI 84-105).</p></div>'+
+    '</div></div></div>'+
+    '<div class="card"><header>Masthead</header><div class="body">'+
+      '<div class="grid2"><label class="f"><span>Command name</span><input id="cmd" value="'+esc(i.command)+'"></label>'+
+      '<label class="f"><span>Motto</span><input id="mot" value="'+esc(i.motto)+'"></label>'+
+      '<label class="f"><span>UIC</span><input id="uic" value="'+esc(i.uic)+'"></label>'+
+      '<label class="f"><span>Server tag</span><input id="tag" value="'+esc(i.tag)+'"></label></div>'+
+      '<label class="f"><span>Description</span><textarea id="bio">'+esc(i.bio)+'</textarea></label>'+
+      '<button class="btn" id="sv">Save Identity</button></div></div>';
+  $('#sv').onclick = ()=>{
+    Object.assign(store.identity, {command:$('#cmd').value.trim(), motto:$('#mot').value.trim(), uic:$('#uic').value.trim(),
+      tag:$('#tag').value.trim(), bio:$('#bio').value.trim(), insignia:$('#ins').value.trim()});
+    audit('identity','update',store.identity.command); persist();
+    document.querySelector('#mast .emblem').src = store.identity.insignia;
+    toast('Identity saved.'); route();
+  };
+};
+
+/* ---------------- data & privacy ---------------- */
+P.priv = ()=>{
+  $('#view').innerHTML =
+    '<div class="page-h"><h1>Data and Privacy</h1><p>What is stored, for how long, and how to get it out or destroy it.</p></div>'+
+    '<div class="card"><header>What the bot stores</header><div class="body">'+
+      '<p>Records live in this browser under <span class="mono">afgsc-dash-v1</span>. Nothing leaves the device unless an endpoint is configured.</p>'+
+      '<ul>'+
+        '<li>Server configuration and moderation records, kept for the roster period.</li>'+
+        '<li>Automod tracking: warning totals, violation history, timestamps, IDs and excerpts up to 500 characters.</li>'+
+        '<li>Recent message content for spam and duplicate detection, periodically trimmed.</li>'+
+        '<li>Case evidence links, and the Roblox IDs of banned members for the evasion check.</li>'+
+        '<li>Invite records and anti-nuke records.</li>'+
+        '<li>Sign-in attempts: time, result, origin and browser, most recent 300.</li>'+
+        '<li>Mod notes, and backups of role and channel layout.</li>'+
+      '</ul>'+
+      '<p>Retention: case, warning and violation records are trimmed after <b>'+esc(store.settings.retention)+' days</b>. Audit entries cap at 400. Documents with a PIN are XOR-obfuscated, not encrypted.</p>'+
+    '</div></div>'+
+    '<div class="card"><header>Actions</header><div class="body row">'+
+      '<button class="btn ghost" id="exp">Export all data (JSON)</button>'+
+      '<button class="btn ghost" id="imp">Restore from JSON</button>'+
+      '<button class="btn ghost" id="trim">Trim past retention</button>'+
+      '<button class="btn danger" id="wipe">Wipe all data</button>'+
+    '</div></div><input type="file" id="file" accept="application/json" hidden>';
+
+  $('#exp').onclick = ()=>download('afgsc-backup.json','application/json',JSON.stringify(store,null,2));
+  $('#imp').onclick = ()=>$('#file').click();
+  $('#file').onchange = e=>{
+    const f = e.target.files[0]; if(!f) return;
+    const r = new FileReader();
+    r.onload = ()=>{ try{ const j = JSON.parse(r.result); if(!j.members) throw 0; store=j; persist(); audit('privacy','restore',''); toast('Restored.'); route(); }
+      catch(_){ toast('Invalid backup file.'); } };
+    r.readAsText(f);
+  };
+  $('#trim').onclick = ()=>{
+    const cut = now() - Number(store.settings.retention)*86400000;
+    let n=0;
+    ['cases','warnings','violations','joinflags','appeals','killLog','logins'].forEach(k=>{
+      const b = store[k].length; store[k] = store[k].filter(r=>r.ts>cut); n += b-store[k].length;
+    });
+    persist(); audit('privacy','trim',n+' records'); toast(n+' records trimmed.'); route();
+  };
+  $('#wipe').onclick = ()=>{
+    if(!confirm('Wipe every record in this browser?')) return;
+    localStorage.removeItem(KEY); load(); route(); toast('All data wiped.');
+  };
+};
+
+/* ---------------- router ---------------- */
+const ROUTES = [
+  ['home','Command Post'],
+  ['look','Member Lookup'],['mem','Members'],['cases','Cases'],['warn','Warnings'],
+  ['flags','Join Flags'],['vio','Automod Violations'],['appeals','Appeals'],
+  ['auto','Automod Rules'],['wf','Word Filter'],['raid','Raid Protection'],
+  ['comms','Messages'],['tickets','Tickets'],['audit','Audit Log'],['docs','Documents'],
+  ['awards','Awards'],['locks','Channel Locks'],['sched','Scheduled & Info'],
+  ['kills','Kill Log'],['tools','Channels & Backups'],['srv','Servers'],
+  ['cmds','Commands'],['tpl','Message Templates'],['appear','Appearance'],['set','Settings'],
+  ['run','Run Code'],['logins','Login & Action Log'],['id','Bot Identity'],['priv','Data & Privacy']
+];
+const GROUPS = [
+  ['Command',['home']],
+  ['Moderation',['look','mem','cases','warn','flags','vio','appeals']],
+  ['Automod',['auto','wf','raid']],
+  ['Server',['comms','tickets','audit','docs','awards','locks','sched','kills','tools','srv']],
+  ['Bot',['cmds','tpl','appear','set','run','logins','id','priv']]
+];
+
+function buildNav(){
+  const label = k => { const r = ROUTES.filter(x=>x[0]===k)[0]; return r ? r[1] : k; };
+  $('#side').innerHTML = GROUPS.map(g=>'<div class="grp"><div class="glbl">'+g[0]+'</div>'+
+    g[1].map(k=>'<a href="#/'+k+'" data-r="'+k+'">'+label(k)+'</a>').join('')+'</div>').join('');
+  $('#navRow').innerHTML = GROUPS.map(g=>'<a class="navsep">'+g[0]+'</a>'+
+    g[1].map(k=>'<a href="#/'+k+'" data-r="'+k+'">'+label(k)+'</a>').join('')).join('');
+}
+
+function markActive(k){ $$('#side a, #navRow a[data-r]').forEach(a=>a.classList.toggle('on', a.dataset.r===k)); }
+
+function route(){
+  const h = (location.hash||'#/home').replace(/^#\/?/,'');
+  const parts = h.split('/');
+  const key = parts[0] || 'home';
+  if(key==='share'){ P.share(parts[1]); markActive('docs'); return; }
+  if(key==='docs' && parts[1]){ P.docEditor(parts[1]); markActive('docs'); return; }
+  const fn = P[key];
+  if(!fn){ $('#view').innerHTML = '<div class="page-h"><h1>Not found</h1></div>'; markActive(''); return; }
+  fn(); markActive(key); window.scrollTo({top:0});
+}
+
+/* ---------------- auth ---------------- */
+function signIn(){
+  const u = $('#gu').value.trim(), p = $('#gp').value;
+  const ok = u==='admin' && p==='2026';
+  store.logins.unshift({id:uid(), ts:now(), user:u||'(blank)', ip:'local', result: ok?'ok':'fail'});
+  store.logins = store.logins.slice(0,300); persist();
+  if(!ok){ $('#gateErr').style.display='block'; return; }
+  sessionStorage.setItem('afgsc-auth','1');
+  $('#gate').style.display='none';
+  $('#stamp').textContent = day(now());
+  location.hash = '#/home'; route();
+}
+$('#gateForm').onsubmit = e=>{ e.preventDefault(); signIn(); };
+$('#signOut').onclick = ()=>{ sessionStorage.removeItem('afgsc-auth'); $('#gate').style.display='flex'; $('#gu').value=''; $('#gp').value=''; };
+
+/* ---------------- boot ---------------- */
+load();
+buildNav();
+(function applyAppearance(){
+  const a = store.appearance;
+  document.documentElement.style.setProperty('--blue', a.accent);
+  document.documentElement.style.setProperty('--blue-dk', a.accent);
+  document.documentElement.style.setProperty('--blue-lt', a.accent);
+  document.body.style.fontSize = a.fs+'px';
+  document.body.dataset.density = a.density;
+  if(!a.govbar) $('#govbar').style.display='none';
+  if(!a.mastSub) $('#mastSub').style.display='none';
 })();
+window.addEventListener('hashchange', route);
+$('#stamp').textContent = day(now());
+if(sessionStorage.getItem('afgsc-auth')==='1'){ $('#gate').style.display='none'; route(); }
+else setTimeout(()=>$('#gu').focus(),120);
 </script>
 </body>
 </html>
