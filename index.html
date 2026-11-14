@@ -283,21 +283,21 @@ footer .fine img{width:26px;height:26px;opacity:.8}
   <div class="wrap">
     <div class="cols">
       <div><h4>Command</h4>
-        <a href="#/home">Command Post</a><a href="#/id">Bot Identity</a><a href="#/srv">Servers</a></div>
+        <a href="#/home">Overview</a><a href="#/bots">Our bots</a><a href="#/id">Bot identity</a><a href="#/srv">Servers</a></div>
       <div><h4>Personnel</h4>
-        <a href="#/look">Member Lookup</a><a href="#/mem">Members</a><a href="#/awards">Awards</a></div>
+        <a href="#/look">Member lookup</a><a href="#/mem">Members</a><a href="#/awards">Awards</a></div>
       <div><h4>Discipline</h4>
-        <a href="#/cases">Cases</a><a href="#/appeals">Appeals</a><a href="#/audit">Audit Log</a></div>
+        <a href="#/cases">Cases</a><a href="#/appeals">Appeals</a><a href="#/audit">Audit log</a></div>
       <div><h4>Resources</h4>
         <a href="https://www.afgsc.af.mil" target="_blank" rel="noopener">AFGSC Official Site</a>
         <a href="https://www.af.mil" target="_blank" rel="noopener">U.S. Air Force</a>
-        <a href="#/priv">Data &amp; Privacy</a></div>
+        <a href="#/priv">Data and privacy</a></div>
     </div>
     <div class="fine">
       <img src="https://upload.wikimedia.org/wikipedia/commons/1/1c/Air_Force_Global_Strike_Command.svg" alt="">
       <span>Emblem: U.S. Army Institute of Heraldry, public domain (use restricted, 18 U.S.C. §704 / AFI 84-105).</span>
       <span style="flex:1"></span>
-      <span>Last reviewed: <span id="stamp"></span></span>
+      <span>Last reviewed: <span id="stamp"></span><span id="build" style="color:var(--gold)"></span></span>
     </div>
   </div>
 </footer>
@@ -441,7 +441,9 @@ function seed(){
       checks:{noAvatar:true, similar:true, sameInvite:true, priorCases:true, roblox:true}, ageDays:7 },
     appearance:{ accent:'#00308F', density:'comfortable', fs:'15', govbar:true, mastSub:true },
     backups:[],
-    settings:{ strikeLimit:'3', retention:'180', tz:'America/Chicago', dmOnAction:true },
+    settings:{ strikeLimit:'3', retention:'180', tz:'America/Chicago', dmOnAction:true,
+      modRole:'@Flight Lead', admRole:'@Command Chief', logCh:'#mod-log', welCh:'#general',
+      freeze:false, lockdown:false },
     servers:[
       {id:uid(), name:'AFGSC Command Post', guild:'881204551', members:'1,284', status:'Linked'},
       {id:uid(), name:'5 BW Operations', guild:'881204777', members:'412', status:'Linked'}
@@ -457,11 +459,8 @@ function load(){
   ['automod','raid','appearance','settings','identity'].forEach(k=>{
     store[k] = Object.assign(base[k], store[k]||{});
   });
-  if(!store.joinflags) store.joinflags = [];
+  ['joinflags','wordfilter','feed','backups'].forEach(k=>{ if(!store[k]) store[k] = base[k] || []; });
   if(!store.commands) store.commands = base.commands;
-  if(!store.wordfilter) store.wordfilter = base.wordfilter;
-  if(!store.feed) store.feed = base.feed;
-  if(!store.backups) store.backups = [];
 }
 function persist(){ localStorage.setItem(KEY, JSON.stringify(store)); }
 function audit(action,target,detail){
@@ -551,7 +550,7 @@ P.home = ()=>{
   const pend = store.appeals.filter(a=>a.status==='pending').length;
   const v24 = store.violations.filter(v=>v.ts > now()-86400000).length;
   $('#view').innerHTML =
-    '<div class="page-h"><h1>Command Post</h1><p>Readiness picture across the assigned servers. All figures live.</p></div>'+
+    '<div class="page-h"><h1>Overview</h1><p>Readiness picture across the assigned servers. All figures live.</p></div>'+
     '<div class="grid4">'+
       '<div class="stat"><div class="n">'+store.members.length+'</div><div class="l">Personnel on roster</div></div>'+
       '<div class="stat g"><div class="n">'+open+'</div><div class="l">Open case files</div></div>'+
@@ -578,10 +577,26 @@ P.home = ()=>{
     ], store.audit.slice(0,8), 'No audit entries yet.')+'</div></div>';
 };
 
+/* ---------------- our bots ---------------- */
+const BOTS = [
+  {name:'STRIKER', tag:'Moderation', desc:'Warns, timeouts, kicks, bans, case files and appeals.', status:'Online'},
+  {name:'RoWifi bridge', tag:'Linking', desc:'Roblox account linking and reverse lookup.', status:'Online'},
+  {name:'SENTRY', tag:'Security', desc:'Automod, raid mode, anti-nuke and join checks.', status:'Online'}
+];
+P.bots = ()=>{
+  $('#view').innerHTML =
+    '<div class="page-h"><h1>Our bots</h1><p>Every bot in this deployment.</p></div>'+
+    '<div class="grid3">'+BOTS.map(b=>
+      '<div class="card"><header>'+esc(b.name)+'<span class="spacer"></span><span class="tag ok">'+esc(b.status)+'</span></header>'+
+      '<div class="body"><div class="tag info" style="margin-bottom:8px">'+esc(b.tag)+'</div>'+
+      '<p style="margin:0;font-size:13.5px">'+esc(b.desc)+'</p></div></div>').join('')+
+    '</div>';
+};
+
 /* ---------------- lookup ---------------- */
 P.look = ()=>{
   $('#view').innerHTML =
-    '<div class="page-h"><h1>Member Lookup</h1><p>Resolve a Roblox handle, Discord ID or name against the roster and linked-account index.</p></div>'+
+    '<div class="page-h"><h1>Member lookup</h1><p>Resolve a Roblox handle, Discord ID or name against the roster and linked-account index.</p></div>'+
     '<div class="card"><header>Query</header><div class="body">'+
       '<div class="row"><label class="f" style="flex:3 1 320px"><span>Search term</span>'+
       '<input id="q" placeholder="Roblox username, Discord ID, or name (Last,F.)"></label>'+
@@ -696,7 +711,7 @@ P.warn = crud({
 });
 
 P.flags = crud({
-  key:'joinflags', title:'Join Flags', sub:'New members who tripped a join check. Clear or action each one.',
+  key:'joinflags', title:'Join flags', sub:'New members who tripped a join check. Clear or action each one.',
   stamp:()=>({ts:now()}), empty:'No join flags.',
   cols:[
     {label:'Member', k:'member'},{label:'Check tripped', k:'check'},{label:'Detail', k:'detail'},
@@ -712,7 +727,7 @@ P.flags = crud({
 });
 
 P.vio = crud({
-  key:'violations', title:'Automod Violations', sub:'What Automod caught, with a 500-character excerpt.',
+  key:'violations', title:'Automod violations', sub:'What Automod caught, with a 500-character excerpt.',
   stamp:()=>({ts:now()}), empty:'Automod has caught nothing.',
   cols:[
     {label:'Member', k:'member'},{label:'Rule', fmt:r=>'<span class="tag info">'+esc(r.rule)+'</span>'},
@@ -756,7 +771,7 @@ const ACTIONS = ['delete','warn','timeout','kick'];
 P.auto = ()=>{
   const A = store.automod;
   $('#view').innerHTML =
-    '<div class="page-h"><h1>Automod Rules</h1><p>Automatic rules that protect the server. Each rule carries its own action.</p>'+
+    '<div class="page-h"><h1>Automod rules</h1><p>Automatic rules that protect the server. Each rule carries its own action.</p>'+
     '<span class="spacer"></span><button class="btn ghost" id="reset">Discard changes</button><button class="btn" id="save">Save Automod</button></div>'+
     '<div class="card"><header>Master<span class="spacer"></span><span class="muted" style="font-size:11px;letter-spacing:0">Violations keep a 500-character excerpt</span></header>'+
       '<div class="body"><div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">'+
@@ -781,13 +796,13 @@ P.auto = ()=>{
     '</div></div>'+
     '<div class="card"><header>Exemptions</header><div class="body">'+
       '<p class="hint" style="margin:0 0 10px">Members with an exempt role, and messages in an exempt channel, skip every rule.</p>'+
-      '<div class="grid2"><div><span class="glbl" style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#6a7280;font-weight:700">Exempt roles</span>'+
+      '<div class="grid2"><div><span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#6a7280;font-weight:700">Exempt roles</span>'+
       '<div class="chk">'+ROLES.map(r=>'<label><input type="checkbox" data-ex="roles" value="'+esc(r)+'" '+(A.exempt.roles.indexOf(r)>-1?'checked':'')+'> '+esc(r)+'</label>').join('')+'</div></div>'+
       '<div><span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#6a7280;font-weight:700">Exempt channels</span>'+
       '<div class="chk">'+CHANNELS.map(c=>'<label><input type="checkbox" data-ex="channels" value="'+esc(c)+'" '+(A.exempt.channels.indexOf(c)>-1?'checked':'')+'> '+esc(c)+'</label>').join('')+'</div></div></div>'+
     '</div></div>';
 
-  $('#master').onclick = e=>{ A.enabled=!A.enabled; e.currentTarget.classList.toggle('on',A.enabled); route(); };
+  $('#master').onclick = ()=>{ A.enabled=!A.enabled; route(); };
   $$('[data-sw]').forEach(b=>b.onclick=()=>{
     const k=b.dataset.sw; A.modules[k].on=!A.modules[k].on;
     b.classList.toggle('on',A.modules[k].on);
@@ -810,7 +825,7 @@ P.auto = ()=>{
 P.wf = ()=>{
   const rows = store.wordfilter;
   $('#view').innerHTML =
-    '<div class="page-h"><h1>Word Filter</h1><p>Your own word and phrase rules. Match modes: whole word, contains, exact message, regular expression.</p>'+
+    '<div class="page-h"><h1>Word filter</h1><p>Your own word and phrase rules. Match modes: whole word, contains, exact message, regular expression.</p>'+
     '<span class="spacer"></span><button class="btn gold" id="add">+ Add Rule</button></div>'+
     '<div class="card"><header>Rules — '+rows.length+'</header><div class="body" style="padding:0">'+
     (rows.length ? '<table><thead><tr><th>Pattern</th><th>Match</th><th>Action</th><th>Timeout</th><th>On</th><th></th></tr></thead><tbody>'+
@@ -878,7 +893,7 @@ P.raid = ()=>{
     '<button class="sw '+(on?'on':'')+'" data-t="'+label+'"></button></div>';
 
   $('#view').innerHTML =
-    '<div class="page-h"><h1>Raid Protection</h1><p>Freeze, raid mode, join gate, ban evasion, anti-nuke and invite tracking.</p>'+
+    '<div class="page-h"><h1>Raid protection</h1><p>Freeze, raid mode, join gate, ban evasion, anti-nuke and join checks.</p>'+
     '<span class="spacer"></span><button class="btn danger" id="panic">Panic: lockdown</button></div>'+
     '<div class="card"><header>Freeze and raid mode</header><div class="body">'+
       box(store.settings.freeze,'Freeze','Blocks every command except unfreeze while active.','')+
@@ -924,8 +939,8 @@ P.raid = ()=>{
     audit('raid',k,'toggled'); persist();
   });
   $$('[data-r]').forEach(s=>s.onchange=()=>{
-    R[s.dataset.r] = s.type==='number'||s.tagName==='SELECT'&&s.dataset.r!=='autoRaid' ? Number(s.value) : s.value;
     if(s.dataset.r==='autoRaid') R.autoRaid = s.value==='1';
+    else R[s.dataset.r] = Number(s.value);
   });
   $$('[data-e]').forEach(s=>s.onchange=()=>{ R.evasion.action=s.value; });
   $$('[data-c]').forEach(c=>c.onchange=()=>{ R.checks[c.dataset.c]=c.checked; });
@@ -940,7 +955,7 @@ P.raid = ()=>{
   };
 };
 
-/* ---------------- messages (channel reader) ---------------- */
+/* ---------------- messages ---------------- */
 P.comms = ()=>{
   const ch = store._ch || '#general';
   const msgs = store.feed.filter(f=>f.channel===ch).slice(-40);
@@ -1037,7 +1052,7 @@ P.tickets = ()=>{
 /* ---------------- audit ---------------- */
 P.audit = ()=>{
   $('#view').innerHTML =
-    '<div class="page-h"><h1>Audit Log</h1><p>Every mutation in this panel, newest first.</p>'+
+    '<div class="page-h"><h1>Audit log</h1><p>Every mutation in this panel, newest first.</p>'+
     '<span class="spacer"></span><button class="btn ghost" id="csv">Export CSV</button><button class="btn danger" id="clr">Clear</button></div>'+
     '<div class="card"><div class="body" style="padding:0">'+table([
       {label:'When', fmt:r=>fmt(r.ts)},{label:'Actor', k:'actor'},
@@ -1209,9 +1224,9 @@ P.awards = ()=>{
   $$('#view [data-d]').forEach(b=>b.onclick=()=>{ store.awards = rows.filter(x=>x.id!==b.dataset.d); audit('award','delete',''); persist(); route(); });
 };
 
-/* ---------------- locks ---------------- */
+/* ---------------- channel locks ---------------- */
 P.locks = crud({
-  key:'locks', title:'Channel Locks', sub:'Channel locks and full lockdowns with the reason and release time on record.',
+  key:'locks', title:'Channel locks', sub:'Channel locks and full lockdowns with the reason and release time on record.',
   stamp:()=>({ts:now(), by:'admin', active:'yes', until:'manual'}),
   cols:[
     {label:'Scope', fmt:r=>'<span class="tag info">'+esc(r.scope)+'</span>'},
@@ -1228,9 +1243,9 @@ P.locks = crud({
   ]
 });
 
-/* ---------------- scheduled & info ---------------- */
+/* ---------------- scheduled and info messages ---------------- */
 P.sched = crud({
-  key:'messages', title:'Scheduled and Info Messages', sub:'Cron-driven posts and standing info blocks.',
+  key:'messages', title:'Scheduled and info messages', sub:'Cron-driven posts and standing info blocks.',
   stamp:()=>({ts:now(), last:null}),
   cols:[
     {label:'Kind', fmt:r=>'<span class="tag '+(r.kind==='Scheduled'?'info':'mute')+'">'+esc(r.kind)+'</span>'},
@@ -1248,7 +1263,7 @@ P.sched = crud({
 
 /* ---------------- kill log ---------------- */
 P.kills = crud({
-  key:'killLog', title:'Kill Log', sub:'Engagement credit reported by the game.',
+  key:'killLog', title:'Kill log', sub:'Engagement credit reported by the game.',
   stamp:()=>({ts:now()}),
   cols:[
     {label:'When', fmt:r=>fmt(r.ts)},{label:'Unit', k:'unit'},{label:'Target', k:'target'},
@@ -1263,7 +1278,7 @@ P.kills = crud({
 /* ---------------- channels and backups ---------------- */
 P.tools = ()=>{
   $('#view').innerHTML =
-    '<div class="page-h"><h1>Channels and Backups</h1><p>Purge, slowmode, lock, rename, retopic, create, delete, announce, back up and restore.</p></div>'+
+    '<div class="page-h"><h1>Channels and backups</h1><p>Purge, slowmode, lock, unlock, rename, retopic, create, delete, announce, back up and restore.</p></div>'+
     '<div class="card"><header>Manage a channel</header><div class="body">'+
       '<div class="row">'+
         '<label class="f" style="flex:0 0 220px"><span>Channel</span><select id="tc">'+CHANNELS.map(c=>'<option>'+c+'</option>').join('')+'</select></label>'+
@@ -1378,7 +1393,7 @@ P.cmds = ()=>{
 /* ---------------- message templates ---------------- */
 P.tpl = ()=>{
   $('#view').innerHTML =
-    '<div class="page-h"><h1>Message Templates</h1><p>Canned posts with {member}, {reason}, {case} placeholders.</p>'+
+    '<div class="page-h"><h1>Message templates</h1><p>Canned posts with {member}, {reason}, {case} placeholders.</p>'+
     '<span class="spacer"></span><button class="btn gold" id="newT">+ New Template</button></div>'+
     '<div class="card"><header>Templates</header><div class="body" style="padding:0">'+
     table([
@@ -1486,7 +1501,7 @@ P.set = ()=>{
 /* ---------------- run code ---------------- */
 P.run = ()=>{
   $('#view').innerHTML =
-    '<div class="page-h"><h1>Run Code</h1><p>Evaluate JavaScript as the bot, with the live <span class="mono">store</span> in scope.</p></div>'+
+    '<div class="page-h"><h1>Run code</h1><p>Evaluate JavaScript as the bot, with the live <span class="mono">store</span> in scope.</p></div>'+
     '<div class="card"><header>Source</header><div class="body" style="padding:0">'+
       '<textarea id="codeIn">// store is live. return a value to print it.\nconst open = store.cases.filter(c => c.status === \'open\').length;\nreturn { openCases: open, roster: store.members.length };</textarea>'+
     '</div></div>'+
@@ -1512,10 +1527,10 @@ P.run = ()=>{
   };
 };
 
-/* ---------------- logins ---------------- */
+/* ---------------- login and action log ---------------- */
 P.logins = ()=>{
   $('#view').innerHTML =
-    '<div class="page-h"><h1>Login and Action Log</h1><p>Sign-in attempts plus the dashboard action trail.</p></div>'+
+    '<div class="page-h"><h1>Login and action log</h1><p>Sign-in attempts plus the dashboard action trail.</p></div>'+
     '<div class="card"><header>Sign-ins</header><div class="body" style="padding:0">'+
     table([
       {label:'When', fmt:r=>fmt(r.ts)},{label:'User', k:'user'},
@@ -1533,7 +1548,7 @@ P.logins = ()=>{
 P.id = ()=>{
   const i = store.identity;
   $('#view').innerHTML =
-    '<div class="page-h"><h1>Bot Identity</h1><p>Masthead values and insignia for this deployment.</p></div>'+
+    '<div class="page-h"><h1>Bot identity</h1><p>Masthead values and insignia for this deployment.</p></div>'+
     '<div class="card"><header>Insignia</header><div class="body"><div class="insignia-box">'+
       '<img src="'+esc(i.insignia)+'" alt="Insignia">'+
       '<div style="flex:1"><label class="f"><span>Insignia URL</span><input id="ins" value="'+esc(i.insignia)+'"></label>'+
@@ -1555,10 +1570,10 @@ P.id = ()=>{
   };
 };
 
-/* ---------------- data & privacy ---------------- */
+/* ---------------- data and privacy ---------------- */
 P.priv = ()=>{
   $('#view').innerHTML =
-    '<div class="page-h"><h1>Data and Privacy</h1><p>What is stored, for how long, and how to get it out or destroy it.</p></div>'+
+    '<div class="page-h"><h1>Data and privacy</h1><p>What is stored, for how long, and how to get it out or destroy it.</p></div>'+
     '<div class="card"><header>What the bot stores</header><div class="body">'+
       '<p>Records live in this browser under <span class="mono">afgsc-dash-v1</span>. Nothing leaves the device unless an endpoint is configured.</p>'+
       '<ul>'+
@@ -1604,18 +1619,18 @@ P.priv = ()=>{
 
 /* ---------------- router ---------------- */
 const ROUTES = [
-  ['home','Command Post'],
-  ['look','Member Lookup'],['mem','Members'],['cases','Cases'],['warn','Warnings'],
-  ['flags','Join Flags'],['vio','Automod Violations'],['appeals','Appeals'],
-  ['auto','Automod Rules'],['wf','Word Filter'],['raid','Raid Protection'],
-  ['comms','Messages'],['tickets','Tickets'],['audit','Audit Log'],['docs','Documents'],
-  ['awards','Awards'],['locks','Channel Locks'],['sched','Scheduled & Info'],
-  ['kills','Kill Log'],['tools','Channels & Backups'],['srv','Servers'],
-  ['cmds','Commands'],['tpl','Message Templates'],['appear','Appearance'],['set','Settings'],
-  ['run','Run Code'],['logins','Login & Action Log'],['id','Bot Identity'],['priv','Data & Privacy']
+  ['home','Overview'],['bots','Our bots'],
+  ['look','Member lookup'],['mem','Members'],['cases','Cases'],['warn','Warnings'],
+  ['flags','Join flags'],['vio','Automod violations'],['appeals','Appeals'],
+  ['auto','Automod rules'],['wf','Word filter'],['raid','Raid protection'],
+  ['comms','Messages'],['tickets','Tickets'],['audit','Audit log'],['docs','Documents'],
+  ['awards','Awards'],['locks','Channel locks'],['sched','Scheduled and info messages'],
+  ['kills','Kill log'],['tools','Channels and backups'],['srv','Servers'],
+  ['cmds','Commands'],['tpl','Message templates'],['appear','Appearance'],['set','Settings'],
+  ['run','Run code'],['logins','Login and action log'],['id','Bot identity'],['priv','Data and privacy']
 ];
 const GROUPS = [
-  ['Command',['home']],
+  ['Overview',['home','bots']],
   ['Moderation',['look','mem','cases','warn','flags','vio','appeals']],
   ['Automod',['auto','wf','raid']],
   ['Server',['comms','tickets','audit','docs','awards','locks','sched','kills','tools','srv']],
@@ -1673,6 +1688,7 @@ buildNav();
 })();
 window.addEventListener('hashchange', route);
 $('#stamp').textContent = day(now());
+$('#build').textContent = ' · build 3';
 if(sessionStorage.getItem('afgsc-auth')==='1'){ $('#gate').style.display='none'; route(); }
 else setTimeout(()=>$('#gu').focus(),120);
 </script>
